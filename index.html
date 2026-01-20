@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OpenRouter Chat</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <h1>OpenRouter Chat</h1>
+      <div id="rateInfo" class="rate-info" aria-live="polite">Loading rate info…</div>
+    </header>
+    <section id="chatBox" class="chat-box">
+      <div id="messages" class="messages" role="log" aria-live="polite"></div>
+      <form id="inputForm" class="input-form" autocomplete="off">
+        <select id="modelSelect" aria-label="Select model">
+          <option value="">Loading models…</option>
+        </select>
+        <input id="userInput" type="text" placeholder="Type your message..." required />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
