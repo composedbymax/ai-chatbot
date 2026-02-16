@@ -1,30 +1,102 @@
 (() => {
   const apiEndpoint = 'api.php';
-  const modelSelect = document.getElementById('modelSelect');
-  const form = document.getElementById('inputForm');
-  const input = document.getElementById('userInput');
-  const messagesDiv = document.getElementById('messages');
-  const rateInfo = document.getElementById('rateInfo');
+  function createAppStructure() {
+    const appDiv = document.getElementById('app');
+    appDiv.innerHTML = `
+      <main class="app">
+        <section id="chatBox" class="chat-box">
+          <div id="messages" class="messages" role="log" aria-live="polite"></div>
+          <form id="inputForm" class="input-form" autocomplete="off">
+            <select id="modelSelect" aria-label="Select model">
+              <option value="">Loading models…</option>
+            </select>
+            <input id="userInput" type="text" placeholder="Type your message..." required />
+            <button type="submit">Send</button>
+          </form>
+        </section>
+      </main>
+    `;
+  }
+  let modelSelect, form, input, messagesDiv;
+  function initDOMReferences() {
+    modelSelect = document.getElementById('modelSelect');
+    form = document.getElementById('inputForm');
+    input = document.getElementById('userInput');
+    messagesDiv = document.getElementById('messages');
+  }
   function appendMessage(text, sender, meta = '') {
-    const d = document.createElement('div');
-    d.className = 'message ' + (sender === 'user' ? 'user' : 'ai');
-    d.textContent = text;
+    const messageWrapper = document.createElement('div');
+    messageWrapper.className = 'message ' + (sender === 'user' ? 'user' : 'ai');
+    const contentDiv = document.createElement('div');
+    if (sender === 'ai') {
+      const formattedText = formatAIResponse(text);
+      contentDiv.innerHTML = formattedText;
+    } else {
+      contentDiv.textContent = text;
+    }
     if (meta) {
       const m = document.createElement('div');
       m.className = 'meta';
       m.textContent = meta;
-      d.appendChild(m);
+      contentDiv.appendChild(m);
     }
-    messagesDiv.appendChild(d);
+    messageWrapper.appendChild(contentDiv);
+    messagesDiv.appendChild(messageWrapper);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
-  function updateRateInfo(rateData) {
-    if (!rateData) {
-      rateInfo.textContent = '';
-      return;
+  function formatAIResponse(text) {
+    const escapeHtml = (unsafe) => {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
+    let escaped = escapeHtml(text);
+    escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    escaped = escaped.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    escaped = escaped.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    escaped = escaped.replace(/_(.+?)_/g, '<em>$1</em>');
+    escaped = escaped.replace(/```([\s\S]+?)```/g, '<pre><code>$1</code></pre>');
+    escaped = escaped.replace(/`(.+?)`/g, '<code>$1</code>');
+    escaped = escaped.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    escaped = escaped.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    escaped = escaped.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    const lines = escaped.split('\n');
+    let inList = false;
+    let formatted = [];
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const listMatch = line.match(/^[\s]*[-*]\s+(.+)$/);
+      
+      if (listMatch) {
+        if (!inList) {
+          formatted.push('<ul>');
+          inList = true;
+        }
+        formatted.push(`<li>${listMatch[1]}</li>`);
+      } else {
+        if (inList) {
+          formatted.push('</ul>');
+          inList = false;
+        }
+        formatted.push(line);
+      }
     }
-    const rem = (rateData.limit_remaining === null) ? 'unlimited' : rateData.limit_remaining;
-    rateInfo.textContent = `Limit: ${rateData.limit ?? 'n/a'} • Remaining: ${rem} • is_free_tier: ${rateData.is_free_tier ? 'yes' : 'no'}`;
+    if (inList) {
+      formatted.push('</ul>');
+    }
+    escaped = formatted.join('\n');
+    const paragraphs = escaped.split(/\n\n+/);
+    escaped = paragraphs.map(p => {
+      p = p.trim();
+      if (p.match(/^<(h1|h2|h3|ul|pre|blockquote)/)) {
+        return p;
+      }
+      return p ? `<p>${p.replace(/\n/g, '<br>')}</p>` : '';
+    }).join('\n');
+    return escaped;
   }
   function populateModels(models) {
     modelSelect.innerHTML = '';
@@ -46,23 +118,22 @@
       const json = await res.json();
       if (json.error) {
         modelSelect.innerHTML = '<option value="">Error loading models</option>';
-        rateInfo.textContent = 'Error loading rate info';
         console.error(json.error);
         return;
       }
       populateModels(json.models || []);
-      updateRateInfo(json.rate_info);
     } catch (e) {
       console.error(e);
       modelSelect.innerHTML = '<option value="">Unable to load models</option>';
-      rateInfo.textContent = 'Failed to load rate info';
     }
   }
   async function sendMessage(message, model) {
     appendMessage(message, 'user');
     const typing = document.createElement('div');
     typing.className = 'message ai';
-    typing.textContent = '…';
+    const typingContent = document.createElement('div');
+    typingContent.textContent = '…';
+    typing.appendChild(typingContent);
     messagesDiv.appendChild(typing);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     try {
@@ -79,9 +150,6 @@
         const reply = json.reply || 'No response from model';
         appendMessage(reply, 'ai');
       }
-      if (json.rate_info) {
-        updateRateInfo(json.rate_info);
-      }
       if (json.rate_limit_message) {
         appendMessage(json.rate_limit_message, 'ai');
       }
@@ -91,17 +159,26 @@
       appendMessage('Error connecting to server', 'ai');
     }
   }
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const message = input.value.trim();
-    const model = modelSelect.value;
-    if (!message) return;
-    if (!model) {
-      appendMessage('Please select a model before sending.', 'ai');
-      return;
-    }
-    input.value = '';
-    sendMessage(message, model);
-  });
-  initializeApp();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  function init() {
+    createAppStructure();
+    initDOMReferences();
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      const model = modelSelect.value;
+      if (!message) return;
+      if (!model) {
+        appendMessage('Please select a model before sending.', 'ai');
+        return;
+      }
+      input.value = '';
+      sendMessage(message, model);
+    });
+    initializeApp();
+  }
 })();
