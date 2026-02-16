@@ -50,3 +50,12 @@ return [
 Do **not** commit this file.
 
 ---
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0 (GPLv3)**.
+
+You may use, modify, and distribute this software, but **any derivative work
+must also be licensed under GPLv3 and remain open-source**.
+
+See the [LICENSE file](https://github.com/composedbymax/openrouter-chatbot/blob/main/LICENSE) for full details.
