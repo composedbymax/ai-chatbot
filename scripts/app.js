@@ -1,10 +1,12 @@
 import { ConversationManager, SidebarUI } from './sidebar.js';
 import { DraftSaver } from './draft.js';
 import { MarkdownFormatter } from './formatter.js';
+import { WelcomeMessage } from './welcome.js';
 const apiEndpoint = './api/api.php';
 let conversationManager;
 let sidebarUI;
 let draftSaver;
+let welcomeMessage;
 let modelSelect, form, input, messagesDiv;
 const formatter = new MarkdownFormatter();
 function createAppStructure() {
@@ -31,6 +33,9 @@ function initDOMReferences() {
   messagesDiv = document.getElementById('messages');
 }
 function appendMessage(text, sender, meta = '') {
+  if (welcomeMessage) {
+    welcomeMessage.hide();
+  }
   const messageWrapper = document.createElement('div');
   messageWrapper.className = 'message ' + (sender === 'user' ? 'user' : 'ai');
   const contentDiv = document.createElement('div');
@@ -153,6 +158,10 @@ function loadConversationIntoUI(conversation) {
     conversation.messages.forEach(msg => {
       appendMessage(msg.content, msg.role === 'user' ? 'user' : 'ai');
     });
+  } else {
+    if (welcomeMessage) {
+      welcomeMessage.show();
+    }
   }
   if (draftSaver) {
     draftSaver.deleteDraft();
@@ -161,6 +170,8 @@ function loadConversationIntoUI(conversation) {
 async function init() {
   createAppStructure();
   initDOMReferences();
+  welcomeMessage = new WelcomeMessage();
+  welcomeMessage.show();
   conversationManager = new ConversationManager();
   await conversationManager.init();
   conversationManager.onConversationLoad = loadConversationIntoUI;
