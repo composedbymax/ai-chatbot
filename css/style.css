@@ -95,6 +95,8 @@ body.sidebar-open .sidebar{transform: translateX(0);}
 .conversation-title-edit:focus{outline: none;border-color: var(--button-bg);box-shadow: 0 0 0 2px rgba(25, 195, 125, 0.2);}
 .conversation-actions{display: none;gap: 4px;align-items: center;flex-shrink: 0;}
 .conversation-item:hover .conversation-actions{display: flex;}
+.conversation-item.mobile .conversation-actions{display: flex;}
+.conversation-item.mobile .drag-handle{display: flex !important;}
 .edit-btn{display: flex;align-items: center;justify-content: center;width: 28px;height: 28px;background: transparent;border: none;color: var(--text-secondary);cursor: pointer;border-radius: 4px;transition: all 0.2s ease;padding: 0;}
 .edit-btn:hover{background: rgba(25, 195, 125, 0.2);color: var(--button-bg);}
 .edit-btn svg{width: 16px;height: 16px;}
@@ -123,6 +125,4 @@ body.sidebar-open .sidebar-toggle{transform: translateX(280px);}
 @media (max-width: 768px){.sidebar{width: 260px;transform: translateX(-260px);}
 body.sidebar-open .sidebar{transform: translateX(0);}
 body.sidebar-open .app{transform: translateX(260px);}
-body.sidebar-open .sidebar-toggle{transform: translateX(260px);}
-.drag-handle{display: none !important;}}
-@media (hover: none) and (pointer: coarse){.drag-handle{display: flex !important;}}
+body.sidebar-open .sidebar-toggle{transform: translateX(260px);}}

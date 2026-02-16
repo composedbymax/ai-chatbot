@@ -1,3 +1,7 @@
+window.isMobileDevice = function() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+    || (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+};
 const createDBWorker = () => {
   const workerCode = `
     const DB_NAME = 'ChatHistoryDB';
@@ -367,6 +371,9 @@ export class SidebarUI {
   createConversationItem(conv, index) {
     const item = document.createElement('div');
     item.className = 'conversation-item';
+    if (window.isMobileDevice()) {
+      item.classList.add('mobile');
+    }
     item.setAttribute('draggable', 'true');
     item.dataset.id = conv.id;
     if (conv.id === this.manager.currentConversationId) {
