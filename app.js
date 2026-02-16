@@ -10,7 +10,7 @@
             <select id="modelSelect" aria-label="Select model">
               <option value="">Loading models…</option>
             </select>
-            <input id="userInput" type="text" placeholder="Type your message..." required />
+            <textarea id="userInput" placeholder="Type your message... (Shift+Enter for new line)" required rows="1"></textarea>
             <button type="submit">Send</button>
           </form>
         </section>
@@ -159,6 +159,14 @@
       appendMessage('Error connecting to server', 'ai');
     }
   }
+  
+  function autoResizeTextarea(textarea) {
+    textarea.style.height = 'auto';
+    const maxHeight = 200; // Maximum height in pixels
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = newHeight + 'px';
+  }
+  
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
@@ -167,6 +175,15 @@
   function init() {
     createAppStructure();
     initDOMReferences();
+    input.addEventListener('input', () => {
+      autoResizeTextarea(input);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.dispatchEvent(new Event('submit'));
+      }
+    });
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const message = input.value.trim();
@@ -177,6 +194,7 @@
         return;
       }
       input.value = '';
+      input.style.height = 'auto';
       sendMessage(message, model);
     });
     initializeApp();
