@@ -1,7 +1,9 @@
 import { ConversationManager, SidebarUI } from './sidebar.js';
+import { DraftSaver } from './draft.js';
 const apiEndpoint = './api/api.php';
 let conversationManager;
 let sidebarUI;
+let draftSaver;
 let modelSelect, form, input, messagesDiv;
 function createAppStructure() {
   const appDiv = document.getElementById('app');
@@ -203,6 +205,9 @@ function loadConversationIntoUI(conversation) {
       appendMessage(msg.content, msg.role === 'user' ? 'user' : 'ai');
     });
   }
+  if (draftSaver) {
+    draftSaver.deleteDraft();
+  }
 }
 async function init() {
   createAppStructure();
@@ -212,6 +217,7 @@ async function init() {
   conversationManager.onConversationLoad = loadConversationIntoUI;
   sidebarUI = new SidebarUI(conversationManager);
   sidebarUI.createSidebar();
+  draftSaver = new DraftSaver(input);
   input.addEventListener('input', () => {
     autoResizeTextarea(input);
   });
@@ -230,6 +236,7 @@ async function init() {
       appendMessage('Please select a model before sending.', 'ai');
       return;
     }
+    draftSaver.deleteDraft();
     input.value = '';
     input.style.height = 'auto';
     sendMessage(message, model);
