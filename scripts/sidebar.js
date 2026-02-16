@@ -128,6 +128,14 @@ export class ConversationManager {
       }
     };
     await this.sendMessage('init');
+    if (this.canSaveToServer()) {
+      await this.loadFromServer();
+    }
+  }
+  canSaveToServer() {
+    return window.userLoggedIn && 
+           window.userRole && 
+           (window.userRole === 'admin' || window.userRole === 'premium');
   }
   sendMessage(action, data = {}) {
     return new Promise((resolve, reject) => {
@@ -196,6 +204,42 @@ export class ConversationManager {
   loadConversation(id) {
     this.currentConversationId = id;
   }
+  async saveToServer(conversationId) {
+    const conversation = await this.getConversation(conversationId);
+    if (!conversation) return { success: false, error: 'Conversation not found' };
+    try {
+      const response = await fetch('./api/save.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          id: conversation.id,
+          title: conversation.title,
+          messages: conversation.messages,
+          timestamp: conversation.timestamp
+        })
+      });
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+  async loadFromServer() {
+    try {
+      const response = await fetch('./api/save.php?action=load');
+      const result = await response.json();
+      if (result.success && result.chats) {
+        for (const chat of result.chats) {
+          await this.saveConversation(chat);
+        }
+        return { success: true, count: result.chats.length };
+      }
+      return { success: false, error: result.error || 'Failed to load' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }
 export class SidebarUI {
   constructor(conversationManager) {
@@ -209,6 +253,11 @@ export class SidebarUI {
     this.touchStartY = 0;
     this.touchCurrentY = 0;
     this.isDragging = false;
+  }
+  canSaveToServer() {
+    return window.userLoggedIn && 
+           window.userRole && 
+           (window.userRole === 'admin' || window.userRole === 'premium');
   }
   createSidebar() {
     const sidebar = document.createElement('div');
@@ -229,6 +278,7 @@ export class SidebarUI {
       <div id="conversationList" class="conversation-list"></div>
       <div class="sidebar-footer">
         <div id="sidebarUser" class="sidebar-user"></div>
+        ${this.canSaveToServer() ? '<div id="dropZone" class="drop-zone">Drop here to save to server</div>' : ''}
       </div>
     `;
     document.body.appendChild(sidebar);
@@ -246,6 +296,46 @@ export class SidebarUI {
     this.createDeleteConfirmModal();
     this.attachEventListeners();
     this.userInfo();
+    if (this.canSaveToServer()) {
+      this.setupDropZone();
+    }
+  }
+  setupDropZone() {
+    const dz = document.getElementById('dropZone');
+    const userDiv = document.getElementById('sidebarUser');
+    if (!dz || !userDiv) return;
+    dz.style.display = 'none';
+    this._dropZone = dz;
+    this._sidebarUser = userDiv;
+    this._showDropZone = () => { dz.style.display = 'flex'; userDiv.style.display = 'none'; };
+    this._hideDropZone = () => { dz.style.display = 'none'; userDiv.style.display = 'block'; dz.classList.remove('drag-over'); };
+    document.addEventListener('dragstart', (e) => {
+      const item = e.target.closest('.conversation-item');
+      if (item) {
+        this.draggedElement = item;
+        this._showDropZone();
+      }
+    });
+    document.addEventListener('dragend', () => {
+      this.draggedElement = null;
+      this._hideDropZone();
+    });
+    dz.addEventListener('dragover', (e) => {
+      if (!this.draggedElement) return;
+      e.preventDefault();
+      dz.classList.add('drag-over');
+    });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', async (e) => {
+      if (!this.draggedElement) return;
+      e.preventDefault();
+      dz.classList.remove('drag-over');
+      dz.textContent = 'Saving...';
+      const res = await this.manager.saveToServer(this.draggedElement.dataset.id);
+      dz.textContent = res?.success ? 'Saved to server!' : 'Error: ' + (res?.error || 'Failed');
+      setTimeout(() => { dz.textContent = 'Drop here to save to server'; this._hideDropZone(); }, 2000);
+      this.draggedElement = null;
+    });
   }
   userInfo() {
     const userDiv = document.getElementById('sidebarUser');
@@ -425,9 +515,10 @@ export class SidebarUI {
     this.touchStartY = touch.clientY;
     this.touchCurrentY = touch.clientY;
     item.classList.add('dragging');
-    const moveHandler = (e) => this.handleTouchMove(e);
-    const endHandler = (e) => {
-      this.handleTouchEnd(e);
+    if (this._showDropZone) this._showDropZone();
+    const moveHandler = (ev) => this.handleTouchMove(ev);
+    const endHandler = (ev) => {
+      this.handleTouchEnd(ev);
       document.removeEventListener('touchmove', moveHandler);
       document.removeEventListener('touchend', endHandler);
     };
@@ -456,9 +547,24 @@ export class SidebarUI {
         otherItem.classList.remove('drag-over');
       }
     });
+    if (this._dropZone) {
+      const dz = this._dropZone.getBoundingClientRect();
+      if (
+        touch.clientX >= dz.left &&
+        touch.clientX <= dz.right &&
+        touch.clientY >= dz.top &&
+        touch.clientY <= dz.bottom
+      ) {
+        this._dropZone.classList.add('drag-over');
+        if (this._showDropZone) this._showDropZone();
+      } else {
+        this._dropZone.classList.remove('drag-over');
+      }
+    }
   }
-  handleTouchEnd(e) {
+  async handleTouchEnd(e) {
     if (!this.isDragging || !this.draggedElement) return;
+    const touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]) || { clientX: 0, clientY: 0 };
     const listDiv = document.getElementById('conversationList');
     const allItems = Array.from(listDiv.querySelectorAll('.conversation-item'));
     const currentRect = this.draggedElement.getBoundingClientRect();
@@ -486,9 +592,27 @@ export class SidebarUI {
         targetItem.parentNode.insertBefore(this.draggedElement, targetItem);
       }
     }
-    allItems.forEach(item => {
-      item.classList.remove('dragging', 'drag-over');
-    });
+    if (this._dropZone) {
+      const dzRect = this._dropZone.getBoundingClientRect();
+      if (
+        touch.clientX >= dzRect.left &&
+        touch.clientX <= dzRect.right &&
+        touch.clientY >= dzRect.top &&
+        touch.clientY <= dzRect.bottom
+      ) {
+        this._dropZone.textContent = 'Saving...';
+        const res = await this.manager.saveToServer(this.draggedElement.dataset.id);
+        this._dropZone.textContent = res?.success ? 'Saved to server!' : 'Error: ' + (res?.error || 'Failed');
+        setTimeout(() => {
+          if (this._dropZone) this._dropZone.textContent = 'Drop here to save to server';
+          if (this._hideDropZone) this._hideDropZone();
+        }, 2000);
+      } else {
+        if (this._hideDropZone) this._hideDropZone();
+      }
+      this._dropZone.classList.remove('drag-over');
+    }
+    allItems.forEach(item => item.classList.remove('dragging', 'drag-over'));
     this.draggedElement = null;
     this.isDragging = false;
   }
