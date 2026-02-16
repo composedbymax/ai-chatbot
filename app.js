@@ -69,7 +69,6 @@
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const listMatch = line.match(/^[\s]*[-*]\s+(.+)$/);
-      
       if (listMatch) {
         if (!inList) {
           formatted.push('<ul>');
@@ -132,10 +131,15 @@
     const typing = document.createElement('div');
     typing.className = 'message ai';
     const typingContent = document.createElement('div');
-    typingContent.textContent = '…';
+    typingContent.textContent = '.';
     typing.appendChild(typingContent);
     messagesDiv.appendChild(typing);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    let dotCount = 1;
+    const typingInterval = setInterval(() => {
+      dotCount = (dotCount % 3) + 1;
+      typingContent.textContent = '.'.repeat(dotCount);
+    }, 500);
     try {
       const res = await fetch(apiEndpoint, {
         method: 'POST',
@@ -143,6 +147,7 @@
         body: JSON.stringify({ action: 'chat', message, model })
       });
       const json = await res.json();
+      clearInterval(typingInterval);
       typing.remove();
       if (json.error) {
         appendMessage(json.error, 'ai');
@@ -155,18 +160,17 @@
       }
     } catch (err) {
       console.error(err);
+      clearInterval(typingInterval);
       typing.remove();
       appendMessage('Error connecting to server', 'ai');
     }
   }
-  
   function autoResizeTextarea(textarea) {
     textarea.style.height = 'auto';
-    const maxHeight = 200; // Maximum height in pixels
+    const maxHeight = 200;
     const newHeight = Math.min(textarea.scrollHeight, maxHeight);
     textarea.style.height = newHeight + 'px';
   }
-  
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
