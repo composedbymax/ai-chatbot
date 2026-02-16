@@ -222,7 +222,7 @@ export class SidebarUI {
             <path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <input type="text" id="searchInput" name="searchInput" class="search-input" placeholder="Search conversations...">
+          <input type="text" id="searchInput" name="searchInput" class="search-input" placeholder="search chats...">
           <button id="clearSearch" class="clear-search-btn" style="display: none;">×</button>
         </div>
       </div>

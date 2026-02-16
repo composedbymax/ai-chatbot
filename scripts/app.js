@@ -2,11 +2,13 @@ import { ConversationManager, SidebarUI } from './sidebar.js';
 import { DraftSaver } from './draft.js';
 import { MarkdownFormatter } from './formatter.js';
 import { WelcomeMessage } from './welcome.js';
+import { VoiceInput } from './voice.js';
 const apiEndpoint = './api/api.php';
 let conversationManager;
 let sidebarUI;
 let draftSaver;
 let welcomeMessage;
+let voiceInput;
 let modelSelect, form, input, messagesDiv;
 const formatter = new MarkdownFormatter();
 function createAppStructure() {
@@ -170,6 +172,8 @@ function loadConversationIntoUI(conversation) {
 async function init() {
   createAppStructure();
   initDOMReferences();
+  voiceInput = new VoiceInput();
+  voiceInput.attachToInput(input);
   welcomeMessage = new WelcomeMessage();
   welcomeMessage.show();
   conversationManager = new ConversationManager();
@@ -177,6 +181,10 @@ async function init() {
   conversationManager.onConversationLoad = loadConversationIntoUI;
   sidebarUI = new SidebarUI(conversationManager);
   sidebarUI.createSidebar();
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    voiceInput.attachToInput(searchInput);
+  }
   draftSaver = new DraftSaver(input);
   input.addEventListener('input', () => {
     autoResizeTextarea(input);
