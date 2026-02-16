@@ -220,6 +220,9 @@ export class SidebarUI {
         </div>
       </div>
       <div id="conversationList" class="conversation-list"></div>
+      <div class="sidebar-footer">
+        <div id="sidebarUser" class="sidebar-user"></div>
+      </div>
     `;
     document.body.appendChild(sidebar);
     const toggle = document.createElement('button');
@@ -235,6 +238,16 @@ export class SidebarUI {
     document.body.appendChild(toggle);
     this.createDeleteConfirmModal();
     this.attachEventListeners();
+    this.userInfo();
+  }
+  userInfo() {
+    const userDiv = document.getElementById('sidebarUser');
+    if (!userDiv) return;
+    if (window.userLoggedIn && window.userName) {
+      userDiv.textContent = window.userName;
+    } else {
+      userDiv.textContent = 'Guest';
+    }
   }
   createDeleteConfirmModal() {
     const modal = document.createElement('div');
@@ -286,6 +299,32 @@ export class SidebarUI {
       clearSearch.style.display = 'none';
       this.loadConversationList();
     });
+    document.addEventListener('keydown', (e) => {
+      if (this.deleteConfirmModal?.classList.contains('show')) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.confirmDelete();
+          return;
+        }
+        if (e.key === 'Escape') {
+          this.closeDeleteModal();
+          return;
+        }
+      }
+      if (this.editingId) {
+        const activeItem = document.querySelector(
+          `.conversation-item[data-id="${this.editingId}"]`
+        );
+        if (!activeItem) return;
+        if (e.key === 'Escape') {
+          this.cancelEditingTitle(activeItem);
+        }
+        return;
+      }
+      if (e.key === 'Escape' && this.isOpen) {
+        this.toggleSidebar();
+      }
+    });
   }
   toggleSidebar() {
     this.isOpen = !this.isOpen;
@@ -318,7 +357,6 @@ export class SidebarUI {
         const item = this.createConversationItem(conv, index);
         fragment.appendChild(item);
       });
-      
       listDiv.innerHTML = '';
       listDiv.appendChild(fragment);
     } catch (error) {
@@ -400,7 +438,6 @@ export class SidebarUI {
     const preview = item.querySelector('.conversation-preview');
     const editInput = item.querySelector('.conversation-title-edit');
     const actions = item.querySelector('.conversation-actions');
-    
     preview.style.display = 'none';
     actions.style.display = 'none';
     editInput.style.display = 'block';
