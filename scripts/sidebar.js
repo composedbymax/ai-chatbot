@@ -470,7 +470,7 @@ export class SidebarUI {
     const actions = item.querySelector('.conversation-actions');
     editInput.style.display = 'none';
     preview.style.display = 'block';
-    actions.style.display = 'flex';
+    actions.style.display = '';
   }
   handleDragStart(e, item) {
     this.draggedElement = item;
