@@ -59,7 +59,7 @@ body.sidebar-open .app{transform: translateX(280px);}
 .messages::-webkit-scrollbar-thumb{background: var(--scrollbar-thumb);border-radius: 0px;}
 .messages::-webkit-scrollbar-thumb:hover{background: var(--scrollbar-thumb-hover);}
 @media (max-width: 768px){.message > div{padding: 0 1rem;}
-.input-form{flex-direction: column;padding: 12px;align-items: stretch;}
+.input-form{z-index:2;margin-bottom:4rem;flex-direction: column;padding: 12px;align-items: stretch;}
 .input-form select{width: 100%;}
 .input-form textarea{min-height: 44px;}}
 
@@ -128,13 +128,13 @@ body.sidebar-open .sidebar-toggle{transform: translateX(280px);}
 .btn-cancel:hover{background: var(--message-bg-ai);}
 .drop-zone{padding: 12px;margin-top: 8px;background: var(--modal-shadow2);border: 2px dashed var(--scrollbar-thumb);border-radius: 6px;text-align: center;font-size: 12px;color: var(--text-secondary);transition: all 0.2s ease;}
 .drop-zone.drag-over{background: var(--modal-shadow);border-color: var(--button-bg);color: var(--text-primary);transform: scale(1.02);}
-@media (max-width: 768px){.sidebar{width: 260px;transform: translateX(-260px);}
+@media (max-width: 768px){.drop-zone{padding:20px}.sidebar-footer{padding:40px 20px}.sidebar{width: 260px;transform: translateX(-260px);}
 body.sidebar-open .sidebar{transform: translateX(0);}
 body.sidebar-open .app{transform: translateX(260px);}
 body.sidebar-open .sidebar-toggle{transform: translateX(260px);}}
 
 /*welcome.js*/
-.welcome-message{position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);text-align: center;z-index: 1;animation: welcomeFadeIn 0.5s ease-out;}
+.welcome-message{position: absolute;top: 45%;left: 50%;transform: translate(-50%, -50%);text-align: center;z-index: 1;animation: welcomeFadeIn 0.5s ease-out;transition: top 0.5s ease-out;}
 .welcome-fade-out{animation: welcomeFadeOut 0.3s ease-out forwards;}
 .welcome-content{display: flex;flex-direction: column;align-items: center;gap: 1rem;}
 .welcome-greeting{font-size: 2.5rem;font-weight: 600;margin: 0;color: var(--button-bg);}
@@ -146,7 +146,7 @@ body.sidebar-open .sidebar-toggle{transform: translateX(260px);}}
 @keyframes welcomeFadeIn{from{opacity: 0;transform: translate(-50%, -45%);}to{opacity: 1;transform: translate(-50%, -50%);}}
 @keyframes welcomeFadeOut{from{opacity: 1;transform: translate(-50%, -50%);}to{opacity: 0;transform: translate(-50%, -55%);}}
 @keyframes spin{0%{transform: rotate(0deg);}100%{transform: rotate(360deg);}}
-@media (max-width: 768px){.welcome-greeting{font-size: 2rem;}
+@media (max-width: 768px){.welcome-message{top:35%}.welcome-greeting{font-size: 2rem;}
 .welcome-subtext{font-size: 1rem;}
 .welcome-spinner{width: 50px;height: 50px;}}
 

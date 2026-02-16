@@ -2,3 +2,6 @@
 models_cache.json
 config.php
 **/chats/*
+TODO.md
+app.bundled.js
+helpers.js

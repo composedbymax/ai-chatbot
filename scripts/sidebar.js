@@ -397,6 +397,11 @@ export class SidebarUI {
       this.loadConversationList();
     });
     document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        this.startNewChat();
+        return;
+      }
       if (this.deleteConfirmModal?.classList.contains('show')) {
         if (e.key === 'Enter') {
           e.preventDefault();

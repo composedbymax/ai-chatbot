@@ -3,12 +3,14 @@ import { DraftSaver } from './draft.js';
 import { MarkdownFormatter } from './formatter.js';
 import { WelcomeMessage } from './welcome.js';
 import { VoiceInput } from './voice.js';
+import { ShareableLink } from './link.js';
 const apiEndpoint = './api/api.php';
 let conversationManager;
 let sidebarUI;
 let draftSaver;
 let welcomeMessage;
 let voiceInput;
+let shareableLink;
 let modelSelect, form, input, messagesDiv;
 const formatter = new MarkdownFormatter();
 function createAppStructure() {
@@ -179,6 +181,11 @@ async function init() {
   conversationManager = new ConversationManager();
   await conversationManager.init();
   conversationManager.onConversationLoad = loadConversationIntoUI;
+  shareableLink = new ShareableLink(conversationManager);
+  const sharedConversation = shareableLink.loadSharedConversation();
+  if (sharedConversation) {
+    loadConversationIntoUI(sharedConversation);
+  }
   sidebarUI = new SidebarUI(conversationManager);
   sidebarUI.createSidebar();
   const searchInput = document.getElementById('searchInput');
