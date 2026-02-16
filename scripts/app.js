@@ -1,10 +1,12 @@
 import { ConversationManager, SidebarUI } from './sidebar.js';
 import { DraftSaver } from './draft.js';
+import { MarkdownFormatter } from './formatter.js';
 const apiEndpoint = './api/api.php';
 let conversationManager;
 let sidebarUI;
 let draftSaver;
 let modelSelect, form, input, messagesDiv;
+const formatter = new MarkdownFormatter();
 function createAppStructure() {
   const appDiv = document.getElementById('app');
   appDiv.innerHTML = `
@@ -33,7 +35,7 @@ function appendMessage(text, sender, meta = '') {
   messageWrapper.className = 'message ' + (sender === 'user' ? 'user' : 'ai');
   const contentDiv = document.createElement('div');
   if (sender === 'ai') {
-    const formattedText = formatAIResponse(text);
+    const formattedText = formatter.format(text);
     contentDiv.innerHTML = formattedText;
   } else {
     contentDiv.textContent = text;
@@ -50,59 +52,6 @@ function appendMessage(text, sender, meta = '') {
 }
 function clearMessages() {
   messagesDiv.innerHTML = '';
-}
-function formatAIResponse(text) {
-  const escapeHtml = (unsafe) => {
-    return unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  };
-  let escaped = escapeHtml(text);
-  escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  escaped = escaped.replace(/__(.+?)__/g, '<strong>$1</strong>');
-  escaped = escaped.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  escaped = escaped.replace(/_(.+?)_/g, '<em>$1</em>');
-  escaped = escaped.replace(/```([\s\S]+?)```/g, '<pre><code>$1</code></pre>');
-  escaped = escaped.replace(/`(.+?)`/g, '<code>$1</code>');
-  escaped = escaped.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  escaped = escaped.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  escaped = escaped.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  const lines = escaped.split('\n');
-  let inList = false;
-  let formatted = [];
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const listMatch = line.match(/^[\s]*[-*]\s+(.+)$/);
-    if (listMatch) {
-      if (!inList) {
-        formatted.push('<ul>');
-        inList = true;
-      }
-      formatted.push(`<li>${listMatch[1]}</li>`);
-    } else {
-      if (inList) {
-        formatted.push('</ul>');
-        inList = false;
-      }
-      formatted.push(line);
-    }
-  }
-  if (inList) {
-    formatted.push('</ul>');
-  }
-  escaped = formatted.join('\n');
-  const paragraphs = escaped.split(/\n\n+/);
-  escaped = paragraphs.map(p => {
-    p = p.trim();
-    if (p.match(/^<(h1|h2|h3|ul|pre|blockquote)/)) {
-      return p;
-    }
-    return p ? `<p>${p.replace(/\n/g, '<br>')}</p>` : '';
-  }).join('\n');
-  return escaped;
 }
 function populateModels(models) {
   modelSelect.innerHTML = '';
