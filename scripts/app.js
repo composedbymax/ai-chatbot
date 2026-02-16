@@ -1,5 +1,5 @@
 import { ConversationManager, SidebarUI } from './sidebar.js';
-const apiEndpoint = 'api.php';
+const apiEndpoint = './api/api.php';
 let conversationManager;
 let sidebarUI;
 let modelSelect, form, input, messagesDiv;
