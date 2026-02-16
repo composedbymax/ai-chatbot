@@ -19,15 +19,17 @@
 
 A lightweight chat interface that uses the **OpenRouter API** and automatically filters for free models. Conversations are stored locally in the browser.
 
+![Chatbot Pic](https://max.x10.mx/_assets/img/github/chatv1.jpeg)
+
 ---
 
 ## Features
 
-- Automatic discovery of free models  
-- Multi-message chat support  
-- Local conversation history via IndexedDB  
-- Rate limit warnings from OpenRouter  
-- Sidebar UI with search, rename, delete, and drag reorder  
+- Automatic discovery of free models
+- Multi-message chat support
+- Local conversation history via IndexedDB
+- Rate limit warnings from OpenRouter
+- Sidebar UI with search, rename, delete, and drag reorder
 
 ---
 
@@ -38,7 +40,7 @@ A lightweight chat interface that uses the **OpenRouter API** and automatically 
 
 ### `config.php`
 
-Create a file in the project root:
+Create this file in the api folder and enter your openrouter API key:
 
 ```php
 <?php
