@@ -206,6 +206,9 @@ export class SidebarUI {
     this.draggedElement = null;
     this.editingId = null;
     this.searchQuery = '';
+    this.touchStartY = 0;
+    this.touchCurrentY = 0;
+    this.isDragging = false;
   }
   createSidebar() {
     const sidebar = document.createElement('div');
@@ -371,7 +374,8 @@ export class SidebarUI {
   createConversationItem(conv, index) {
     const item = document.createElement('div');
     item.className = 'conversation-item';
-    if (window.isMobileDevice()) {
+    const isMobile = window.isMobileDevice();
+    if (isMobile) {
       item.classList.add('mobile');
     }
     item.setAttribute('draggable', 'true');
@@ -400,13 +404,93 @@ export class SidebarUI {
       </div>
     `;
     item.addEventListener('click', (e) => this.handleItemClick(e, conv.id, item));
-    item.addEventListener('dragstart', (e) => this.handleDragStart(e, item));
-    item.addEventListener('dragover', (e) => this.handleDragOver(e));
-    item.addEventListener('drop', (e) => this.handleDrop(e, item));
-    item.addEventListener('dragend', () => this.handleDragEnd());
-    item.addEventListener('dragenter', () => item.classList.add('drag-over'));
-    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    if (isMobile) {
+      const dragHandle = item.querySelector('.drag-handle');
+      dragHandle.addEventListener('touchstart', (e) => this.handleTouchStart(e, item), { passive: false });
+    } else {
+      item.addEventListener('dragstart', (e) => this.handleDragStart(e, item));
+      item.addEventListener('dragover', (e) => this.handleDragOver(e));
+      item.addEventListener('drop', (e) => this.handleDrop(e, item));
+      item.addEventListener('dragend', () => this.handleDragEnd());
+      item.addEventListener('dragenter', () => item.classList.add('drag-over'));
+      item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    }
     return item;
+  }
+  handleTouchStart(e, item) {
+    e.preventDefault();
+    this.draggedElement = item;
+    this.isDragging = true;
+    const touch = e.touches[0];
+    this.touchStartY = touch.clientY;
+    this.touchCurrentY = touch.clientY;
+    item.classList.add('dragging');
+    const moveHandler = (e) => this.handleTouchMove(e);
+    const endHandler = (e) => {
+      this.handleTouchEnd(e);
+      document.removeEventListener('touchmove', moveHandler);
+      document.removeEventListener('touchend', endHandler);
+    };
+    document.addEventListener('touchmove', moveHandler, { passive: false });
+    document.addEventListener('touchend', endHandler);
+  }
+  handleTouchMove(e) {
+    if (!this.isDragging || !this.draggedElement) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    this.touchCurrentY = touch.clientY;
+    const deltaY = this.touchCurrentY - this.touchStartY;
+    this.draggedElement.style.transform = `translateY(${deltaY}px)`;
+    this.draggedElement.style.opacity = '0.8';
+    const listDiv = document.getElementById('conversationList');
+    const allItems = Array.from(listDiv.querySelectorAll('.conversation-item'));
+    const currentRect = this.draggedElement.getBoundingClientRect();
+    const currentCenterY = currentRect.top + currentRect.height / 2;
+    allItems.forEach(otherItem => {
+      if (otherItem === this.draggedElement) return;
+      const otherRect = otherItem.getBoundingClientRect();
+      const otherCenterY = otherRect.top + otherRect.height / 2;
+      if (Math.abs(currentCenterY - otherCenterY) < otherRect.height / 2) {
+        otherItem.classList.add('drag-over');
+      } else {
+        otherItem.classList.remove('drag-over');
+      }
+    });
+  }
+  handleTouchEnd(e) {
+    if (!this.isDragging || !this.draggedElement) return;
+    const listDiv = document.getElementById('conversationList');
+    const allItems = Array.from(listDiv.querySelectorAll('.conversation-item'));
+    const currentRect = this.draggedElement.getBoundingClientRect();
+    const currentCenterY = currentRect.top + currentRect.height / 2;
+    let targetItem = null;
+    let minDistance = Infinity;
+    allItems.forEach(otherItem => {
+      if (otherItem === this.draggedElement) return;
+      const otherRect = otherItem.getBoundingClientRect();
+      const otherCenterY = otherRect.top + otherRect.height / 2;
+      const distance = Math.abs(currentCenterY - otherCenterY);
+      if (distance < minDistance && distance < otherRect.height) {
+        minDistance = distance;
+        targetItem = otherItem;
+      }
+    });
+    this.draggedElement.style.transform = '';
+    this.draggedElement.style.opacity = '';
+    if (targetItem && targetItem !== this.draggedElement) {
+      const draggedIndex = allItems.indexOf(this.draggedElement);
+      const targetIndex = allItems.indexOf(targetItem);
+      if (draggedIndex < targetIndex) {
+        targetItem.parentNode.insertBefore(this.draggedElement, targetItem.nextSibling);
+      } else {
+        targetItem.parentNode.insertBefore(this.draggedElement, targetItem);
+      }
+    }
+    allItems.forEach(item => {
+      item.classList.remove('dragging', 'drag-over');
+    });
+    this.draggedElement = null;
+    this.isDragging = false;
   }
   handleItemClick(e, convId, item) {
     const target = e.target.closest('button, input');
