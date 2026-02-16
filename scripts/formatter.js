@@ -39,11 +39,29 @@ class MarkdownFormatter {
       return t.add(codeHtml);
     });
   }
-  processInlineFormattingWithEscape(text) {
-    text = text.replace(/\*\*(.+?)\*\*/g, (match, content) => {
-      return `<strong>${this.escapeHtml(content)}</strong>`;
+  extractLinksAndImages(md, t) {
+    md = md.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+      const escapedAlt = this.escapeHtml(alt);
+      const escapedSrc = this.escapeHtml(src);
+      const imgHtml = `<img src="${escapedSrc}" alt="${escapedAlt}">`;
+      return t.add(imgHtml);
     });
-    text = text.replace(/__(.+?)__/g, (match, content) => {
+    md = md.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+      if (text.includes('@@TOKEN')) {
+        return match;
+      }
+      const escapedText = text;
+      const escapedUrl = this.escapeHtml(url);
+      const linkHtml = `<a href="${escapedUrl}">${escapedText}</a>`;
+      return t.add(linkHtml);
+    });
+    return md;
+  }
+  processInlineFormattingWithEscape(text) {
+    text = text.replace(/~~(.+?)~~/g, (match, content) => {
+      return `<del>${this.escapeHtml(content)}</del>`;
+    });
+    text = text.replace(/\*\*(.+?)\*\*/g, (match, content) => {
       return `<strong>${this.escapeHtml(content)}</strong>`;
     });
     text = text.replace(/(^|[^\*])\*([^*\s][\s\S]*?[^*\s])\*(?!\*)/g, (m, p1, p2) => {
@@ -107,19 +125,23 @@ class MarkdownFormatter {
         tableHtml += '</table></div>';
         out.push(t.add(tableHtml));
       } else {
-        out.push(this.escapeHtml(line));
+        out.push(line);
         i++;
       }
     }
     return out.join('\n');
   }
   processInlineFormatting(text) {
+    text = text.replace(/~~(.+?)~~/g, '<del>$1</del>');
     text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
     text = text.replace(/(^|[^\*])\*([^*\s][\s\S]*?[^*\s])\*(?!\*)/g, (m, p1, p2) => `${p1}<em>${p2}</em>`);
     text = text.replace(/(^|[^_])_([^_\s][\s\S]*?[^_\s])_(?!_)/g, (m, p1, p2) => `${p1}<em>${p2}</em>`);
     text = text.replace(/`([^`]+?)`/g, (m, code) => `<code>${code}</code>`);
     text = text.replace(/^\s*>\s?(.*)$/gm, '<blockquote>$1</blockquote>');
+    text = text.replace(/^\s*######\s+(.+)$/gm, '<h6>$1</h6>');
+    text = text.replace(/^\s*#####\s+(.+)$/gm, '<h5>$1</h5>');
+    text = text.replace(/^\s*####\s+(.+)$/gm, '<h4>$1</h4>');
     text = text.replace(/^\s*###\s+(.+)$/gm, '<h3>$1</h3>');
     text = text.replace(/^\s*##\s+(.+)$/gm, '<h2>$1</h2>');
     text = text.replace(/^\s*#\s+(.+)$/gm, '<h1>$1</h1>');
@@ -158,7 +180,7 @@ class MarkdownFormatter {
     const final = paragraphs.map(p => {
       const t = p.trim();
       if (!t) return '';
-      if (/^<(h1|h2|h3|ul|ol|pre|blockquote|table|div)/.test(t)) return t;
+      if (/^<(h1|h2|h3|h4|h5|h6|ul|ol|pre|blockquote|table|div)/.test(t)) return t;
       return `<p>${t.replace(/\n/g, '<br>')}</p>`;
     }).join('\n');
     return final;
@@ -168,6 +190,7 @@ class MarkdownFormatter {
     const t = this.createTokenStore();
     let s = this.extractFencedCodeBlocks(markdownText, t);
     s = this.extractIndentedCodeBlocks(s, t);
+    s = this.extractLinksAndImages(s, t);
     s = this.extractTables(s, t);
     s = this.processInlineFormatting(s);
     s = this.processListsAndParagraphs(s);
