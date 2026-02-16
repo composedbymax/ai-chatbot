@@ -147,10 +147,25 @@ async function sendMessage(message, model) {
     typingContent.textContent = '.'.repeat(dotCount);
   }, 500);
   try {
+    let messages = [];
+    if (conversationManager.currentConversationId) {
+      const conversation = await conversationManager.getConversation(conversationManager.currentConversationId);
+      if (conversation && conversation.messages) {
+        messages = conversation.messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+      }
+    }
     const res = await fetch(apiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'chat', message, model })
+      body: JSON.stringify({
+        action: 'chat',
+        message,
+        messages,
+        model
+      })
     });
     const json = await res.json();
     clearInterval(typingInterval);

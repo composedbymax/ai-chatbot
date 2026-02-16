@@ -47,20 +47,31 @@ function handleChat($apiKey) {
     $input = json_decode($raw, true);
     $message = $input['message'] ?? null;
     $model = $input['model'] ?? null;
-    if (!$message) {
-        echo json_encode(['error' => 'No message supplied.']);
-        exit;
-    }
+    $messages = $input['messages'] ?? null;
     if (!$model) {
         echo json_encode(['error' => 'No model selected.']);
         exit;
     }
+    if ($messages && is_array($messages) && count($messages) > 0) {
+        $apiMessages = array_map(function($msg) {
+            return [
+                'role' => $msg['role'] === 'user' ? 'user' : 'assistant',
+                'content' => $msg['content']
+            ];
+        }, $messages);
+    } else {
+        if (!$message) {
+            echo json_encode(['error' => 'No message supplied.']);
+            exit;
+        }
+        $apiMessages = [
+            ['role' => 'user', 'content' => $message]
+        ];
+    }
     $url = 'https://openrouter.ai/api/v1/chat/completions';
     $post = [
         'model' => $model,
-        'messages' => [
-            ['role' => 'user', 'content' => $message]
-        ],
+        'messages' => $apiMessages,
         'max_tokens' => 1000,
     ];
     $ch = curl_init($url);
