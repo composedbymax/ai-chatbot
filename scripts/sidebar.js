@@ -193,7 +193,23 @@ export class ConversationManager {
     }
   }
   async deleteConversation(id) {
-    return this.sendMessage('deleteConversation', { id });
+    const result = await this.sendMessage('deleteConversation', { id });
+    if (this.canSaveToServer()) {
+      try {
+        const response = await fetch('./api/save.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'delete',
+            id: id
+          })
+        });
+        await response.json();
+      } catch (error) {
+        console.error('Server deletion failed:', error);
+      }
+    }
+    return result;
   }
   async searchConversations(query) {
     return this.sendMessage('searchConversations', { query });
@@ -431,10 +447,20 @@ export class SidebarUI {
   toggleSidebar() {
     this.isOpen = !this.isOpen;
     const toggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
     if (this.isOpen) {
       document.body.classList.add('sidebar-open');
       toggle.classList.add('open');
       this.loadConversationList();
+      const outsideClickListener = (e) => {
+        if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+          this.toggleSidebar();
+          document.removeEventListener('click', outsideClickListener);
+        }
+      };
+      setTimeout(() => {
+        document.addEventListener('click', outsideClickListener);
+      }, 0);
     } else {
       document.body.classList.remove('sidebar-open');
       toggle.classList.remove('open');
