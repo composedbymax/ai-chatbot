@@ -785,4 +785,33 @@ export class SidebarUI {
       this.toggleSidebar();
     }
   }
+  async loadConversationIntoChat(id) {
+    const conversation = await this.manager.getConversation(id);
+    if (!conversation || !this.manager.onConversationLoad) return;
+    this.manager.loadConversation(id);
+    this.manager.onConversationLoad(conversation);
+    if (window.toolsEngine) {
+      await window.toolsEngine.ready();
+      const aiMessages = [...document.querySelectorAll('#messages .message.ai')];
+      let aiIndex = 0;
+      for (const msg of conversation.messages) {
+        if (msg.role !== 'assistant') continue;
+        const toolCall = window.toolsEngine.parseToolCall(msg.content);
+        if (toolCall) {
+          try {
+            const rendered = await window.toolsEngine.handleToolCall(toolCall);
+            const el = aiMessages[aiIndex];
+            if (el) {
+              el.innerHTML = '';
+              el.appendChild(rendered);
+            }
+          } catch (err) {
+            console.error('Tool recall failed:', err);
+          }
+        }
+        aiIndex++;
+      }
+    }
+    this.toggleSidebar();
+  }
 }

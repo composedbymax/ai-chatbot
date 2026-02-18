@@ -14,7 +14,7 @@ let voiceInput;
 let shareableLink;
 let modelSelect, form, input, messagesDiv;
 const formatter = new MarkdownFormatter();
-const toolsEngine = new ToolsEngine();
+window.toolsEngine = new ToolsEngine();
 function createAppStructure() {
   const appDiv = document.getElementById('app');
   appDiv.innerHTML = `

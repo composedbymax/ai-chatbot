@@ -98,4 +98,18 @@ export class ToolsEngine {
       return errEl;
     }
   }
+  async recallToolsFromConversation(conversation, replaceCallback) {
+    if (!conversation?.messages) return;
+    for (const msg of conversation.messages) {
+      if (msg.role !== 'assistant') continue;
+      const toolCall = this.parseToolCall(msg.content);
+      if (!toolCall) continue;
+      try {
+        const rendered = await this.handleToolCall(toolCall);
+        replaceCallback(msg, rendered);
+      } catch (err) {
+        console.error('Tool recall failed:', err);
+      }
+    }
+  }
 }

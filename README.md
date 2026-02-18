@@ -58,18 +58,30 @@ Do **not** commit this file.
 ```
 ├── api
 │   ├── api.php
-│   └── save.php
+│   ├── config.php
+│   ├── save.php
+│   ├── weather.php
+│   ├── yfiapi.php
+│   └── toolsconfig.json
+│
 ├── css
 │   └── style.css
+│
 ├── index.html
+│
 └── scripts
     ├── app.js
     ├── draft.js
     ├── formatter.js
+    ├── helpers.js
     ├── link.js
     ├── sidebar.js
+    ├── tools.js
     ├── voice.js
+    ├── weather-tool.js
+    ├── yfi-tool.js
     └── welcome.js
+
 ```
 
 
