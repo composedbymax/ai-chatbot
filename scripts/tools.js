@@ -1,4 +1,4 @@
-const TOOLS_CONFIG_URL = './api/toolsconfig.json';
+const TOOLS_CONFIG_URL = './api/tools/toolsconfig.json';
 export class ToolsEngine {
   constructor() {
     this.config = null;

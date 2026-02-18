@@ -57,7 +57,7 @@ export class YFinanceTool {
     return wrapper;
   }
   async _fetchAndRender(symbol, toolCall, knownName) {
-    const phpFile = toolCall._phpFile ?? './api/yfiapi.php';
+    const phpFile = toolCall._phpFile ?? './api/tools/yfiapi.php';
     const res = await fetch(phpFile, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

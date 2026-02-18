@@ -60,9 +60,11 @@ Do **not** commit this file.
 │   ├── api.php
 │   ├── config.php
 │   ├── save.php
-│   ├── weather.php
-│   ├── yfiapi.php
-│   └── toolsconfig.json
+│   ├── chats
+│   └── tools
+│       ├── toolsconfig.json
+│       ├── weather.php
+│       └── yfiapi.php
 │
 ├── css
 │   └── style.css
@@ -78,9 +80,10 @@ Do **not** commit this file.
     ├── sidebar.js
     ├── tools.js
     ├── voice.js
-    ├── weather-tool.js
-    ├── yfi-tool.js
-    └── welcome.js
+    ├── welcome.js
+    └── tools
+        ├── weather-tool.js
+        └── yfi-tool.js
 
 ```
 
