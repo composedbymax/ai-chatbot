@@ -2,6 +2,8 @@
 models_cache.json
 config.php
 **/chats/*
+**/YFIcache/*
+**/YFIsearchCache/*
 TODO.md
 app.bundled.js
 helpers.js

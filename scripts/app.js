@@ -4,6 +4,7 @@ import { MarkdownFormatter } from './formatter.js';
 import { WelcomeMessage } from './welcome.js';
 import { VoiceInput } from './voice.js';
 import { ShareableLink } from './link.js';
+import { ToolsEngine } from './tools.js';
 const apiEndpoint = './api/api.php';
 let conversationManager;
 let sidebarUI;
@@ -13,6 +14,7 @@ let voiceInput;
 let shareableLink;
 let modelSelect, form, input, messagesDiv;
 const formatter = new MarkdownFormatter();
+const toolsEngine = new ToolsEngine();
 function createAppStructure() {
   const appDiv = document.getElementById('app');
   appDiv.innerHTML = `
@@ -56,6 +58,14 @@ function appendMessage(text, sender, meta = '') {
     contentDiv.appendChild(m);
   }
   messageWrapper.appendChild(contentDiv);
+  messagesDiv.appendChild(messageWrapper);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+function appendElement(el) {
+  if (welcomeMessage) welcomeMessage.hide();
+  const messageWrapper = document.createElement('div');
+  messageWrapper.className = 'message ai';
+  messageWrapper.appendChild(el);
   messagesDiv.appendChild(messageWrapper);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
@@ -117,13 +127,22 @@ async function sendMessage(message, model) {
         }));
       }
     }
+    await toolsEngine.ready();
+    const matchedTools = toolsEngine.detectTools(message);
+    const toolPrompt = toolsEngine.buildToolPrompt(matchedTools);
+    const augmentedMessage = toolPrompt
+      ? `${toolPrompt}\n\nUser message: ${message}`
+      : message;
+    const apiMessages = [
+      ...messages.slice(0, -1),
+      { role: 'user', content: augmentedMessage }
+    ];
     const res = await fetch(apiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'chat',
-        message,
-        messages,
+        messages: apiMessages,
         model
       })
     });
@@ -135,6 +154,15 @@ async function sendMessage(message, model) {
       await conversationManager.saveMessage('assistant', json.error);
     } else {
       const reply = json.reply || 'No response from model';
+      if (matchedTools.length) {
+        const toolEl = await toolsEngine.tryRender(reply);
+        if (toolEl) {
+          appendElement(toolEl);
+          await conversationManager.saveMessage('assistant', reply);
+          if (json.rate_limit_message) appendMessage(json.rate_limit_message, 'ai');
+          return;
+        }
+      }
       appendMessage(reply, 'ai');
       await conversationManager.saveMessage('assistant', reply);
     }

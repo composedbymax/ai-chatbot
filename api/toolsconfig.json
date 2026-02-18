@@ -1,0 +1,33 @@
+{
+  "tools": [
+    {
+      "id": "weather",
+      "name": "Weather",
+      "keywords": [
+        "weather", "forecast", "temperature", "rain", "snow", "sunny", "cloudy",
+        "humidity", "wind", "storm", "climate", "hot", "cold", "degrees",
+        "will it rain", "what's the weather", "how's the weather"
+      ],
+      "llm_instructions": "The user is asking about weather. Extract the city or location name from their message. Respond ONLY with a JSON tool-call in this exact format (no other text):\n{\"tool\":\"weather\",\"location\":\"<city name>\",\"description\":\"<brief friendly description of what they asked>\"}",
+      "js_file": "./weather-tool.js",
+      "php_file": "./api/weather.php",
+      "renderer": "WeatherTool"
+    },
+    {
+      "id": "yfinance",
+      "name": "Yahoo Finance",
+      "keywords": [
+        "stock", "stocks", "share", "shares", "ticker", "market", "nasdaq", "nyse",
+        "price", "trading", "invest", "investment", "portfolio", "equity",
+        "aapl", "tsla", "goog", "amzn", "msft", "meta", "nvda",
+        "bitcoin", "btc", "ethereum", "eth", "crypto", "cryptocurrency",
+        "bull", "bear", "dividend", "earnings", "ipo", "s&p", "dow jones"
+      ],
+      "keyword_context": ["stock", "share", "ticker", "market", "trading", "invest", "price", "crypto", "bitcoin", "btc", "ethereum", "eth"],
+      "llm_instructions": "The user is asking about a stock, cryptocurrency, or financial instrument. Extract the company name or ticker symbol from their message. Respond ONLY with a JSON tool-call in this exact format (no other text):\n{\"tool\":\"yfinance\",\"query\":\"<company name or ticker>\",\"range\":\"1mo\",\"interval\":\"1d\",\"description\":\"<brief friendly description of what they asked>\"}",
+      "js_file": "./yfi-tool.js",
+      "php_file": "./api/yfiapi.php",
+      "renderer": "YFinanceTool"
+    }
+  ]
+}

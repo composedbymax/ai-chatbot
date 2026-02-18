@@ -19,7 +19,7 @@
 
 A lightweight chat interface that uses the **OpenRouter API** and automatically filters for free models. Conversations are stored locally in the browser.
 
-![Chatbot Pic](https://max.x10.mx/_assets/img/github/chatv1.jpeg)
+![Chatbot Pic](https://max.x10.mx/_assets/img/github/chatv2.jpeg)
 
 ---
 
@@ -30,6 +30,7 @@ A lightweight chat interface that uses the **OpenRouter API** and automatically 
 - Local conversation history via IndexedDB
 - Rate limit warnings from OpenRouter
 - Sidebar UI with search, rename, delete, and drag reorder
+- Custom tooling giving LLM ability to make relevant API calls
 
 ---
 
@@ -53,6 +54,26 @@ Do **not** commit this file.
 
 ---
 
+## Structure
+```
+├── api
+│   ├── api.php
+│   └── save.php
+├── css
+│   └── style.css
+├── index.html
+└── scripts
+    ├── app.js
+    ├── draft.js
+    ├── formatter.js
+    ├── link.js
+    ├── sidebar.js
+    ├── voice.js
+    └── welcome.js
+```
+
+
+___
 ## License
 
 This project is licensed under the **GNU General Public License v3.0 (GPLv3)**.

@@ -185,3 +185,56 @@ body.sidebar-open .sidebar-toggle{transform: translateX(260px);}}
 .voice-input-btn:focus{outline: 2px solid var(--button-bg);outline-offset: 2px;}
 .voice-input-btn:focus:not(:focus-visible){outline: none;}
 .voice-input-btn:focus-visible{outline: 2px solid var(--button-bg);outline-offset: 2px;}
+
+/* TOOLS */
+
+/* weather-tool.js */
+.weather-card{background: linear-gradient(135deg, #1a3a5c 0%, #0e2340 60%, #162d4a 100%);border-radius: 16px;padding: 1.2rem 1.4rem;color: #e8f4ff;font-family: 'Segoe UI', system-ui, sans-serif;max-width: 420px;box-shadow: 0 4px 24px rgba(0,0,0,0.35);margin: 0.5rem 0;}
+.wt-header{display: flex;align-items: center;gap: 0.8rem;margin-bottom: 0.7rem;}
+.wt-icon{font-size: 2.4rem;line-height: 1;}
+.wt-city{font-size: 1.1rem;font-weight: 700;letter-spacing: 0.02em;}
+.wt-desc{font-size: 0.82rem;color: #8bbddf;margin-top: 0.1rem;}
+.wt-main{display: flex;align-items: baseline;gap: 1.2rem;margin: 0.5rem 0 0.8rem;}
+.wt-temp{font-size: 3rem;font-weight: 300;line-height: 1;}
+.wt-unit{font-size: 1.2rem;vertical-align: super;opacity: 0.7;}
+.wt-meta{display: flex;flex-direction: column;gap: 0.25rem;font-size: 0.8rem;color: #8bbddf;}
+.wt-range{color: #c3dff7;}
+.wt-hourly{margin-top: 0.8rem;}
+.wt-hourly-label{font-size: 0.7rem;color: #6a9cbf;text-transform: uppercase;letter-spacing: 0.08em;margin-bottom: 0.4rem;}
+.wt-bars{display: flex;align-items: flex-end;height: 56px;gap: 2px;position: relative;}
+.wt-bar-col{display: flex;flex-direction: column;align-items: center;flex: 1;height: 100%;position: relative;}
+.wt-bar-line{width: 3px;background: rgba(139,189,223,0.25);border-radius: 2px;margin-top: auto;}
+.wt-temp-dot{width: 6px;height: 6px;border-radius: 50%;background: #5bb3f7;position: absolute;left: 50%;transform: translateX(-50%);}
+.wt-bar-time{font-size: 0.58rem;color: #6a9cbf;margin-top: 3px;}
+.wt-footer{font-size: 0.65rem;color: #3d6a8c;margin-top: 0.8rem;text-align: right;}
+.tool-error{background: #2d1515;color: #f88;border-radius: 10px;padding: 0.8rem 1rem;font-size: 0.88rem;}
+
+/* yfi-tool.js */
+.yfi-card{background: #0f1923;border: 1px solid #1e3148;border-radius: 16px;padding: 1.1rem 1.3rem;color: #d4e8ff;font-family: 'Segoe UI', system-ui, sans-serif;max-width: 440px;box-shadow: 0 4px 28px rgba(0,0,0,0.5);margin: 0.5rem 0;}
+.yfi-header{display: flex;justify-content: space-between;align-items: flex-start;margin-bottom: 0.9rem;}
+.yfi-symbol{font-size: 1.5rem;font-weight: 800;letter-spacing: 0.04em;color: #fff;}
+.yfi-name{font-size: 0.72rem;color: #4d7fa8;margin-top: 0.15rem;max-width: 200px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
+.yfi-price-block{text-align: right;}
+.yfi-price{font-size: 1.7rem;font-weight: 300;color: #fff;}
+.yfi-currency{font-size: 0.75rem;color: #4d7fa8;margin-left: 3px;vertical-align: super;}
+.yfi-change{font-size: 0.82rem;display: block;margin-top: 0.15rem;}
+.yfi-change.up{color: #34d399;}
+.yfi-change.down{color: #f05252;}
+.yfi-chart{position: relative;margin: 0 -0.2rem 0.8rem;}
+.yfi-svg{width: 100%;height: 90px;display: block;}
+.yfi-chart-range{position: absolute;bottom: 2px;right: 4px;font-size: 0.6rem;color: #2d5070;text-transform: uppercase;letter-spacing: 0.08em;}
+.yfi-no-chart{height: 60px;display: flex;align-items: center;justify-content: center;color: #2d5070;font-size: 0.8rem;}
+.yfi-meta-grid{display: grid;grid-template-columns: auto 1fr;gap: 0.2rem 1.2rem;margin-bottom: 0.7rem;}
+.yfi-meta-key{font-size: 0.72rem;color: #4d7fa8;white-space: nowrap;}
+.yfi-meta-val{font-size: 0.72rem;color: #9fcce8;font-variant-numeric: tabular-nums;}
+.yfi-footer{font-size: 0.62rem;color: #1e3d5c;text-align: right;margin-top: 0.4rem;}
+.yfi-loading{padding: 1.5rem;text-align: center;color: #4d7fa8;font-size: 0.85rem;}
+.yfi-confirm-title{font-size: 0.8rem;color: #8bbddf;text-transform: uppercase;letter-spacing: 0.08em;margin-bottom: 0.25rem;}
+.yfi-confirm-query{font-size: 0.85rem;color: #6a9cbf;margin-bottom: 0.8rem;}
+.yfi-confirm-query strong{color: #c3dff7;}
+.yfi-candidates{display: flex;flex-direction: column;gap: 0.4rem;margin-bottom: 0.8rem;}
+.yfi-candidate{display: grid;grid-template-columns: 5rem 1fr auto;align-items: center;gap: 0.5rem;background: rgba(255,255,255,0.04);border: 1px solid #1e3148;border-radius: 8px;padding: 0.55rem 0.75rem;cursor: pointer;text-align: left;color: inherit;font-family: inherit;transition: background 0.15s, border-color 0.15s;}
+.yfi-candidate:hover{background: rgba(91,179,247,0.1);border-color: #2d5a8e;}
+.yfi-cand-symbol{font-size: 0.9rem;font-weight: 700;color: #fff;}
+.yfi-cand-name{font-size: 0.75rem;color: #8bbddf;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
+.yfi-cand-meta{font-size: 0.65rem;color: #3d6a8c;white-space: nowrap;}
