@@ -448,18 +448,21 @@ export class SidebarUI {
     this.isOpen = !this.isOpen;
     const toggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
+    if (this._outsideClickListener) {
+      document.removeEventListener('click', this._outsideClickListener);
+      this._outsideClickListener = null;
+    }
     if (this.isOpen) {
       document.body.classList.add('sidebar-open');
       toggle.classList.add('open');
       this.loadConversationList();
-      const outsideClickListener = (e) => {
+      this._outsideClickListener = (e) => {
         if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
           this.toggleSidebar();
-          document.removeEventListener('click', outsideClickListener);
         }
       };
       setTimeout(() => {
-        document.addEventListener('click', outsideClickListener);
+        document.addEventListener('click', this._outsideClickListener);
       }, 0);
     } else {
       document.body.classList.remove('sidebar-open');
