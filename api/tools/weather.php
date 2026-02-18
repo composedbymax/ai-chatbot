@@ -7,41 +7,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
-$raw = file_get_contents('php://input');
+$raw   = file_get_contents('php://input');
 $input = json_decode($raw, true);
 $location = trim($input['location'] ?? '');
 if (!$location) {
     echo json_encode(['error' => 'No location provided']);
     exit;
 }
-$geoUrl = 'https://geocoding-api.open-meteo.com/v1/search?' . http_build_query([
-    'name'    => $location,
-    'count'   => 1,
-    'language' => 'en',
-    'format'  => 'json'
-]);
-$geoRes = httpGet($geoUrl);
-if ($geoRes === false) {
-    echo json_encode(['error' => 'Geocoding request failed']);
+function buildSearchCandidates(string $location): array {
+    $candidates = [];
+    $normalized = preg_replace('/\s+/', ' ', str_replace(',', ' ', $location));
+    $normalized = trim($normalized);
+    $candidates[] = $normalized;
+    $candidates[] = $location;
+    $parts = array_values(array_filter(array_map('trim', explode(' ', $normalized))));
+    if (count($parts) > 1) {
+        $candidates[] = $parts[0];
+    }
+    return array_unique($candidates);
+}
+function geocodeLocation(string $query): ?array {
+    $url = 'https://geocoding-api.open-meteo.com/v1/search?' . http_build_query([
+        'name'     => $query,
+        'count'    => 5,
+        'language' => 'en',
+        'format'   => 'json'
+    ]);
+    $res = httpGet($url);
+    if ($res === false) return null;
+    $geo = json_decode($res, true);
+    return (!empty($geo['results'])) ? $geo['results'] : null;
+}
+$place = null;
+foreach (buildSearchCandidates($location) as $candidate) {
+    $results = geocodeLocation($candidate);
+    if (!empty($results)) {
+        $place = $results[0];
+        break;
+    }
+}
+if (!$place) {
+    echo json_encode(['error' => 'Location not found: ' . htmlspecialchars($location)]);
     exit;
 }
-$geo = json_decode($geoRes, true);
-if (empty($geo['results'])) {
-    echo json_encode(['error' => "Location not found: " . htmlspecialchars($location)]);
-    exit;
-}
-$place = $geo['results'][0];
-$lat   = $place['latitude'];
-$lon   = $place['longitude'];
-$name  = $place['name'] ?? $location;
+$lat     = $place['latitude'];
+$lon     = $place['longitude'];
+$name    = $place['name']         ?? $location;
 $country = $place['country_code'] ?? ($place['country'] ?? '');
 $weatherUrl = 'https://api.open-meteo.com/v1/forecast?' . http_build_query([
-    'latitude'          => $lat,
-    'longitude'         => $lon,
-    'current_weather'   => 'true',
-    'hourly'            => 'temperature_2m,precipitation_probability',
-    'forecast_days'     => 1,
-    'timezone'          => 'auto'
+    'latitude'        => $lat,
+    'longitude'       => $lon,
+    'current_weather' => 'true',
+    'hourly'          => 'temperature_2m,precipitation_probability',
+    'forecast_days'   => 1,
+    'timezone'        => 'auto'
 ]);
 $weatherRes = httpGet($weatherUrl);
 if ($weatherRes === false) {
@@ -62,7 +81,7 @@ echo json_encode([
     ],
     'weather' => $weather
 ]);
-function httpGet($url) {
+function httpGet(string $url): string|false {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
