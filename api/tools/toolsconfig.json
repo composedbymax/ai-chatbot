@@ -28,6 +28,19 @@
       "js_file": "./tools/yfi-tool.js",
       "php_file": "./api/tools/yfiapi.php",
       "renderer": "YFinanceTool"
+    },
+    {
+      "id": "time",
+      "name": "Local Time",
+      "keywords": [
+        "time", "what time", "current time", "local time", "clock",
+        "timezone", "time zone", "what's the time", "time in", "time at",
+        "hour", "hours", "dst", "daylight saving", "utc offset"
+      ],
+      "llm_instructions": "The user is asking about the current local time for a location. Extract the city or location name from their message. Respond ONLY with a JSON tool-call in this exact format (no other text):\n{\"tool\":\"time\",\"location\":\"<city name>\",\"description\":\"<brief friendly description of what they asked>\"}",
+      "js_file": "./tools/time-tool.js",
+      "php_file": "./api/tools/time.php",
+      "renderer": "TimeTool"
     }
   ]
 }

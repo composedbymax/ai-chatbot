@@ -5,7 +5,7 @@ export class WelcomeMessage {
   }
   getGreeting() {
     const hour = new Date().getHours();
-    const name = window.userName ? `, ${window.userName}` : "";
+    const name = window.userName ? `, ${window.userName}` : ", Guest";
     const greetings = {
       morning: [
         `Good morning${name}`,

@@ -238,3 +238,20 @@ body.sidebar-open .sidebar-toggle{transform: translateX(260px);}}
 .yfi-cand-symbol{font-size: 0.9rem;font-weight: 700;color: #fff;}
 .yfi-cand-name{font-size: 0.75rem;color: #8bbddf;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
 .yfi-cand-meta{font-size: 0.65rem;color: #3d6a8c;white-space: nowrap;}
+
+/* time-tool.js */
+.time-card{background: var(--message-bg-ai);border: 1px solid var(--border);border-radius: 12px;padding: 16px 20px;max-width: 360px;color: var(--text-primary);font-family: inherit;}
+.tt-header{display: flex;align-items: center;gap: 12px;margin-bottom: 14px;}
+.tt-icon{font-size: 2rem;line-height: 1;flex-shrink: 0;}
+.tt-title{display: flex;flex-direction: column;gap: 2px;}
+.tt-city{font-size: 1rem;font-weight: 600;color: var(--text-primary);}
+.tt-tz{font-size: 0.75rem;color: var(--text-secondary);}
+.tt-main{margin-bottom: 12px;}
+.tt-time{font-size: 2.4rem;font-weight: 700;letter-spacing: 0.02em;color: var(--text-primary);line-height: 1.1;}
+.tt-date{font-size: 0.85rem;color: var(--text-secondary);margin-top: 4px;}
+.tt-meta{display: flex;align-items: center;gap: 8px;flex-wrap: wrap;margin-bottom: 12px;}
+.tt-offset,
+.tt-abbr{font-size: 0.75rem;color: var(--text-secondary);background: var(--code-inline-bg);padding: 2px 8px;border-radius: 20px;border: 1px solid var(--border);}
+.tt-badge{font-size: 0.72rem;padding: 2px 8px;border-radius: 20px;background: var(--input-bg);color: var(--text-secondary);border: 1px solid var(--border);}
+.tt-badge.tt-dst{background: rgba(25, 195, 125, 0.15);color: var(--button-bg);border-color: rgba(25, 195, 125, 0.35);}
+.tt-footer{font-size: 0.7rem;color: var(--text-secondary);opacity: 0.55;border-top: 1px solid var(--border);padding-top: 10px;margin-top: 4px;}
