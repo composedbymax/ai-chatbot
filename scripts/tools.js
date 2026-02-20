@@ -63,11 +63,13 @@ export class ToolsEngine {
     try {
       const cleaned = llmReply.trim().replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/, '');
       const parsed = JSON.parse(cleaned);
-      if (parsed && parsed.tool && this.config.tools.some(t => t.id === parsed.tool)) {
+      if (parsed && !Array.isArray(parsed) && parsed.tool && this.config.tools.some(t => t.id === parsed.tool)) {
         return parsed;
       }
-    } catch {
-    }
+      if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(p => p.tool && this.config.tools.some(t => t.id === p.tool))) {
+        return parsed;
+      }
+    } catch {}
     return null;
   }
   async handleToolCall(toolCall) {
@@ -94,25 +96,35 @@ export class ToolsEngine {
   async tryRender(llmReply) {
     const toolCall = this.parseToolCall(llmReply);
     if (!toolCall) return null;
-    try {
-      return await this.handleToolCall(toolCall);
-    } catch (err) {
-      console.error('[ToolsEngine] Tool render failed:', err);
-      const errEl = document.createElement('div');
-      errEl.className = 'tool-error';
-      errEl.textContent = `⚠️ Tool error: ${err.message}`;
-      return errEl;
+    const toolCalls = Array.isArray(toolCall) ? toolCall : [toolCall];
+    if (toolCalls.length === 1) {
+      try {
+        return await this.handleToolCall(toolCalls[0]);
+      } catch (err) {
+        console.error('[ToolsEngine] Tool render failed:', err);
+        return window.toolErrorEl(err.message);
+      }
     }
+    const container = document.createElement('div');
+    container.className = 'tool-results-multi';
+    await Promise.all(toolCalls.map(async (tc) => {
+      try {
+        const el = await this.handleToolCall(tc);
+        container.appendChild(el);
+      } catch (err) {
+        console.error('[ToolsEngine] Tool render failed:', err);
+        container.appendChild(window.toolErrorEl(err.message));
+      }
+    }));
+    return container;
   }
   async recallToolsFromConversation(conversation, replaceCallback) {
     if (!conversation?.messages) return;
     for (const msg of conversation.messages) {
       if (msg.role !== 'assistant') continue;
-      const toolCall = this.parseToolCall(msg.content);
-      if (!toolCall) continue;
       try {
-        const rendered = await this.handleToolCall(toolCall);
-        replaceCallback(msg, rendered);
+        const rendered = await this.tryRender(msg.content);
+        if (rendered) replaceCallback(msg, rendered);
       } catch (err) {
         console.error('Tool recall failed:', err);
       }

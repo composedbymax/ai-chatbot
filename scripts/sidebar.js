@@ -792,25 +792,32 @@ export class SidebarUI {
     const conversation = await this.manager.getConversation(id);
     if (!conversation || !this.manager.onConversationLoad) return;
     this.manager.loadConversation(id);
-    this.manager.onConversationLoad(conversation);
     if (window.toolsEngine) {
       await window.toolsEngine.ready();
+      for (const msg of conversation.messages) {
+        if (msg.role === 'assistant' && window.toolsEngine.parseToolCall(msg.content)) {
+          msg._originalContent = msg.content;
+          msg.content = '';
+        }
+      }
+    }
+    this.manager.onConversationLoad(conversation);
+    if (window.toolsEngine) {
       const aiMessages = [...document.querySelectorAll('#messages .message.ai')];
       let aiIndex = 0;
       for (const msg of conversation.messages) {
         if (msg.role !== 'assistant') continue;
-        const toolCall = window.toolsEngine.parseToolCall(msg.content);
-        if (toolCall) {
-          try {
-            const rendered = await window.toolsEngine.handleToolCall(toolCall);
+        if (msg._originalContent) {
+          const rendered = await window.toolsEngine.tryRender(msg._originalContent);
+          if (rendered) {
             const el = aiMessages[aiIndex];
             if (el) {
               el.innerHTML = '';
               el.appendChild(rendered);
             }
-          } catch (err) {
-            console.error('Tool recall failed:', err);
           }
+          msg.content = msg._originalContent;
+          delete msg._originalContent;
         }
         aiIndex++;
       }
