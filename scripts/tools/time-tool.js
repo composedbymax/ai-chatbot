@@ -1,8 +1,6 @@
 export class TimeTool {
   render(data, toolCall) {
-    if (data.error) {
-      return this._errorEl(data.error);
-    }
+    if (data.error) return window.toolErrorEl(`Time error: ${data.error}`);
     const { location, time } = data;
     const card = document.createElement('div');
     card.className = 'tool-card time-card';
@@ -27,8 +25,8 @@ export class TimeTool {
       <div class="tt-header">
         <div class="tt-icon">🕐</div>
         <div class="tt-title">
-          <div class="tt-city">${this._esc(location.name)}${location.country ? ', ' + this._esc(location.country) : ''}</div>
-          <div class="tt-tz">${this._esc(time.timezone)}</div>
+          <div class="tt-city">${window.escapeHtml(location.name)}${location.country ? ', ' + window.escapeHtml(location.country) : ''}</div>
+          <div class="tt-tz">${window.escapeHtml(time.timezone)}</div>
         </div>
       </div>
       <div class="tt-main">
@@ -36,21 +34,12 @@ export class TimeTool {
         <div class="tt-date">${dateStr}</div>
       </div>
       <div class="tt-meta">
-        <span class="tt-offset">UTC ${this._esc(time.utc_offset)}</span>
-        <span class="tt-abbr">${this._esc(time.abbreviation)}</span>
+        <span class="tt-offset">UTC ${window.escapeHtml(time.utc_offset)}</span>
+        <span class="tt-abbr">${window.escapeHtml(time.abbreviation)}</span>
         ${dstBadge}
       </div>
       <div class="tt-footer">via Time.Now • time.now</div>
     `;
     return card;
-  }
-  _errorEl(msg) {
-    const el = document.createElement('div');
-    el.className = 'tool-card tool-error';
-    el.textContent = `⚠️ Time error: ${msg}`;
-    return el;
-  }
-  _esc(str) {
-    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 }

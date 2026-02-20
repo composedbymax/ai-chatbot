@@ -1,3 +1,9 @@
+window.toolErrorEl = (msg) => {
+  const el = document.createElement('div');
+  el.className = 'tool-card tool-error';
+  el.textContent = `⚠️ ${msg}`;
+  return el;
+};
 const TOOLS_CONFIG_URL = './api/tools/toolsconfig.json';
 export class ToolsEngine {
   constructor() {

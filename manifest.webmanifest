@@ -1,0 +1,33 @@
+{
+  "name": "MW – AI Chat",
+  "short_name": "AI Chat",
+  "description": "AI Chat using openrouter",
+  "start_url": "/chat/?source=pwa",
+  "scope": "/chat/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": ["ai", "tools", "chat"],
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "/_assets/img/icon/chat-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/_assets/img/icon/chat-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/_assets/img/ai-chat.webp",
+      "sizes": "1080x1920",
+      "type": "image/webp"
+    }
+  ]
+}

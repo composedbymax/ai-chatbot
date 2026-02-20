@@ -1,8 +1,6 @@
 export class WeatherTool {
   render(data, toolCall) {
-    if (data.error) {
-      return this._errorEl(data.error);
-    }
+    if (data.error) return window.toolErrorEl(`Weather error: ${data.error}`);
     const { location, weather } = data;
     const w = weather.current_weather;
     const hourly = weather.hourly || {};
@@ -54,7 +52,7 @@ export class WeatherTool {
       <div class="wt-header">
         <div class="wt-icon">${icon}</div>
         <div class="wt-title">
-          <div class="wt-city">${this._esc(location.name)}${location.country ? ', ' + this._esc(location.country) : ''}</div>
+          <div class="wt-city">${window.escapeHtml(location.name)}${location.country ? ', ' + window.escapeHtml(location.country) : ''}</div>
           <div class="wt-desc">${desc}</div>
         </div>
       </div>
@@ -69,15 +67,6 @@ export class WeatherTool {
       <div class="wt-footer">via Open-Meteo • open-meteo.com</div>
     `;
     return card;
-  }
-  _errorEl(msg) {
-    const el = document.createElement('div');
-    el.className = 'tool-card tool-error';
-    el.textContent = `⚠️ Weather error: ${msg}`;
-    return el;
-  }
-  _esc(str) {
-    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   _wmoDescription(code) {
     const map = {

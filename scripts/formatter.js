@@ -1,14 +1,15 @@
+const escapeHtml = (str) => String(str)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
 class MarkdownFormatter {
   constructor() {
     this.tokenStore = null;
   }
   escapeHtml(unsafe) {
-    return unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    return escapeHtml(unsafe);
   }
   createTokenStore() {
     const store = [];
@@ -199,3 +200,4 @@ class MarkdownFormatter {
   }
 }
 export { MarkdownFormatter };
+window.escapeHtml = escapeHtml;
