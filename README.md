@@ -63,6 +63,7 @@ Do **not** commit this file.
 │   ├── chats
 │   └── tools
 │       ├── toolsconfig.json
+│       ├── time.php
 │       ├── weather.php
 │       └── yfiapi.php
 │
@@ -82,6 +83,7 @@ Do **not** commit this file.
     ├── voice.js
     ├── welcome.js
     └── tools
+        ├── time-tool.js
         ├── weather-tool.js
         └── yfi-tool.js
 
