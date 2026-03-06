@@ -53,9 +53,13 @@ export class ToolsEngine {
     const blocks = matchedTools.map(t =>
       `### Tool: ${t.name}\n${t.llm_instructions}`
     );
+    const multiNote = matchedTools.length > 1
+      ? `If the user's request matches MULTIPLE tools, respond with a JSON array of tool-calls: [{...}, {...}]\n\n`
+      : '';
     return (
       `You have access to structured data tools. When the user's request matches a tool, ` +
-      `respond ONLY with the JSON tool-call specified below — no prose, no markdown, just raw JSON.\n\n` +
+      `respond ONLY with the JSON tool-call(s) below — no prose, no markdown, just raw JSON.\n\n` +
+      multiNote +
       blocks.join('\n\n')
     );
   }
