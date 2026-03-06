@@ -771,14 +771,6 @@ export class SidebarUI {
       this.loadConversationList();
     }
   }
-  async loadConversationIntoChat(id) {
-    const conversation = await this.manager.getConversation(id);
-    if (conversation && this.manager.onConversationLoad) {
-      this.manager.loadConversation(id);
-      this.manager.onConversationLoad(conversation);
-      this.toggleSidebar();
-    }
-  }
   startNewChat() {
     this.manager.startNewConversation();
     if (this.manager.onConversationLoad) {
@@ -792,34 +784,31 @@ export class SidebarUI {
     const conversation = await this.manager.getConversation(id);
     if (!conversation || !this.manager.onConversationLoad) return;
     this.manager.loadConversation(id);
-    if (window.toolsEngine) {
-      await window.toolsEngine.ready();
-      for (const msg of conversation.messages) {
-        if (msg.role === 'assistant' && window.toolsEngine.parseToolCall(msg.content)) {
-          msg._originalContent = msg.content;
-          msg.content = '';
-        }
-      }
-    }
     this.manager.onConversationLoad(conversation);
     if (window.toolsEngine) {
-      const aiMessages = [...document.querySelectorAll('#messages .message.ai')];
-      let aiIndex = 0;
-      for (const msg of conversation.messages) {
-        if (msg.role !== 'assistant') continue;
-        if (msg._originalContent) {
-          const rendered = await window.toolsEngine.tryRender(msg._originalContent);
-          if (rendered) {
-            const el = aiMessages[aiIndex];
-            if (el) {
-              el.innerHTML = '';
-              el.appendChild(rendered);
+      try {
+        await window.toolsEngine.ready();
+        const aiElements = Array.from(document.querySelectorAll('#messages .message.ai'));
+        let aiIndex = 0;
+        for (const msg of conversation.messages) {
+          if (msg.role !== 'assistant') continue;
+          const domEl = aiElements[aiIndex++];
+          if (!domEl) continue;
+          if (typeof window.toolsEngine.parseToolCall === 'function' &&
+              window.toolsEngine.parseToolCall(msg.content)) {
+            try {
+              const rendered = await window.toolsEngine.tryRender(msg.content);
+              if (rendered) {
+                domEl.innerHTML = '';
+                domEl.appendChild(rendered);
+              }
+            } catch (e) {
+              console.error('toolsEngine rendering failed for conversation', id, e);
             }
           }
-          msg.content = msg._originalContent;
-          delete msg._originalContent;
         }
-        aiIndex++;
+      } catch (err) {
+        console.error('toolsEngine.ready() failed:', err);
       }
     }
     this.toggleSidebar();
