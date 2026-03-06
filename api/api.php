@@ -30,13 +30,16 @@ switch ($action) {
         break;
 }
 function handleInit($apiKey) {
-    $models = getModels();
+    $modelsData = getModels();
     $rateInfo = null;
     try {
         $rateInfo = getRateInfo($apiKey);
     } catch (Exception $e) {
     }
-    $response = ['models' => $models];
+    $response = [
+        'models' => $modelsData['models'],
+        'cache'  => $modelsData['cache']
+    ];
     if ($rateInfo) {
         $response['rate_info'] = $rateInfo;
     }
@@ -183,8 +186,10 @@ function getModels() {
             if (!modelIsFree($m)) continue;
             $provider = getProviderDisplay($m) ?: 'UnknownProvider';
             $modelName = getModelDisplayName($m);
-            $llmName = sprintf('%s — %s (free)', $provider, $modelName);
             $provModelId = getProviderModelId($m);
+            if ($provModelId && stripos($provModelId, 'embed') !== false) continue;
+            if ($modelName && stripos($modelName, 'embed') !== false) continue;
+            $llmName = sprintf('%s — %s (free)', $provider, $modelName);
             if ($provModelId) {
                 $models[] = [
                     'llm_name' => $llmName,
@@ -193,7 +198,7 @@ function getModels() {
             }
         }
     }
-    return $models;
+    return ['models' => $models,'cache' => $useCache];
 }
 function getRateInfo($apiKey) {
     $url = 'https://openrouter.ai/api/v1/key';
