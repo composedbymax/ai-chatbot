@@ -784,33 +784,7 @@ export class SidebarUI {
     const conversation = await this.manager.getConversation(id);
     if (!conversation || !this.manager.onConversationLoad) return;
     this.manager.loadConversation(id);
-    this.manager.onConversationLoad(conversation);
-    if (window.toolsEngine) {
-      try {
-        await window.toolsEngine.ready();
-        const aiElements = Array.from(document.querySelectorAll('#messages .message.ai'));
-        let aiIndex = 0;
-        for (const msg of conversation.messages) {
-          if (msg.role !== 'assistant') continue;
-          const domEl = aiElements[aiIndex++];
-          if (!domEl) continue;
-          if (typeof window.toolsEngine.parseToolCall === 'function' &&
-              window.toolsEngine.parseToolCall(msg.content)) {
-            try {
-              const rendered = await window.toolsEngine.tryRender(msg.content);
-              if (rendered) {
-                domEl.innerHTML = '';
-                domEl.appendChild(rendered);
-              }
-            } catch (e) {
-              console.error('toolsEngine rendering failed for conversation', id, e);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('toolsEngine.ready() failed:', err);
-      }
-    }
+    await this.manager.onConversationLoad(conversation);
     this.toggleSidebar();
   }
 }
