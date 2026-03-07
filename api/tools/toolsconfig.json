@@ -41,6 +41,41 @@
       "js_file": "./tools/time-tool.js",
       "php_file": "./api/tools/time.php",
       "renderer": "TimeTool"
+    },
+    {
+      "id": "aviation",
+      "name": "Flight Tracker",
+      "keywords": [
+        "flight", "flights", "plane", "aircraft", "airline", "airport", "departure", "departures", "arriving",
+        "arrivals", "landed", "landing", "takeoff", "take off", "boarding", "delayed", "delay", "cancelled",
+        "on time", "flying", "fly", "flew", "track", "tracking", "status", "iata", "icao", "terminal",
+        "gate", "baggage claim", "lufthansa", "delta", "united", "american airlines", "southwest", "jetblue",
+        "emirates", "british airways", "air france", "ryanair", "easyjet"
+      ],
+      "keyword_context": [
+        "flight", "plane", "airline", "airport", "departure", "arrival", "fly", "flying", "track"
+      ],
+      "llm_instructions": "The user is asking about a flight or airport. Determine the query type and extract the relevant identifiers.\n\nFor a specific flight number (e.g. \"AA123\", \"BA456\", \"LH789\"):\nRespond ONLY with: {\"tool\":\"aviation\",\"query_type\":\"flight\",\"flight_iata\":\"<IATA flight code>\",\"description\":\"<brief friendly description>\"}\n\nFor departures from an airport (e.g. \"flights leaving JFK\", \"departures from Heathrow\"):\nRespond ONLY with: {\"tool\":\"aviation\",\"query_type\":\"departure\",\"airport\":\"<IATA airport code>\",\"flight_status\":\"active\",\"description\":\"<brief friendly description>\"}\n\nFor arrivals at an airport (e.g. \"flights arriving at LAX\", \"what's landing at O'Hare\"):\nRespond ONLY with: {\"tool\":\"aviation\",\"query_type\":\"arrival\",\"airport\":\"<IATA airport code>\",\"flight_status\":\"active\",\"description\":\"<brief friendly description>\"}\n\nFor an airline's flights (e.g. \"show me Delta flights\", \"United Airlines status\"):\nRespond ONLY with: {\"tool\":\"aviation\",\"query_type\":\"airline\",\"airline_iata\":\"<2-letter airline IATA code>\",\"flight_status\":\"active\",\"description\":\"<brief friendly description>\"}\n\nAlways use standard IATA codes. No extra text, just raw JSON.",
+      "js_file": "./tools/aviation-tool.js",
+      "php_file": "./api/tools/aviation.php",
+      "renderer": "AviationTool"
+    },
+    {
+      "id": "pexels",
+      "name": "Pexels Media",
+      "keywords": [
+        "show me", "show a", "generate", "picture of", "photo of", "image of", "video of", "clip of",
+        "find a photo", "find a picture", "find a video", "display", "search image", "search photo", "search video",
+        "get me a photo", "get me a picture", "get me a video", "fetch a photo", "fetch a picture", "fetch an image",
+        "show picture", "show photo", "show image", "show video"
+      ],
+      "keyword_context": [
+        "show", "generate", "picture", "photo", "image", "video", "clip", "find", "display", "fetch"
+      ],
+      "llm_instructions": "The user wants to see a photo or video. Extract the search query (subject/scene) from their message. Determine if they want a photo or video — default to photo unless they say 'video', 'clip', 'footage', or 'film'. Respond ONLY with a JSON tool-call in this exact format (no other text):\n{\"tool\":\"pexels\",\"query\":\"<search keywords>\",\"type\":\"photo\",\"description\":\"<brief friendly description of what they asked>\"}\nFor video requests use: \"type\":\"video\"",
+      "js_file": "./tools/pexels-tool.js",
+      "php_file": "./api/tools/pexels.php",
+      "renderer": "PexelsTool"
     }
   ]
 }

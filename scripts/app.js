@@ -184,20 +184,22 @@ function autoResizeTextarea(textarea) {
   const newHeight = Math.min(textarea.scrollHeight, maxHeight);
   textarea.style.height = newHeight + 'px';
 }
-function loadConversationIntoUI(conversation) {
+async function loadConversationIntoUI(conversation) {
   clearMessages();
   if (conversation.messages && conversation.messages.length > 0) {
-    conversation.messages.forEach(msg => {
-      appendMessage(msg.content, msg.role === 'user' ? 'user' : 'ai');
-    });
-  } else {
-    if (welcomeMessage) {
-      welcomeMessage.show();
+    await toolsEngine.ready();
+    for (const msg of conversation.messages) {
+      if (msg.role === 'assistant') {
+        const rendered = await toolsEngine.tryRender(msg.content);
+        rendered ? appendElement(rendered) : appendMessage(msg.content, 'ai');
+      } else {
+        appendMessage(msg.content, 'user');
+      }
     }
+  } else {
+    if (welcomeMessage) welcomeMessage.show();
   }
-  if (draftSaver) {
-    draftSaver.deleteDraft();
-  }
+  if (draftSaver) draftSaver.deleteDraft();
 }
 async function init() {
   createAppStructure();

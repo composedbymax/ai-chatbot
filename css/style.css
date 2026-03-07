@@ -259,3 +259,67 @@ body.sidebar-open .sidebar-toggle{transform: translateX(260px);}}
 .tt-badge{font-size: 0.72rem;padding: 2px 8px;border-radius: 20px;background: var(--input-bg);color: var(--text-secondary);border: 1px solid var(--border);}
 .tt-badge.tt-dst{background: rgba(25, 195, 125, 0.15);color: var(--button-bg);border-color: rgba(25, 195, 125, 0.35);}
 .tt-footer{font-size: 0.7rem;color: var(--text-secondary);opacity: 0.55;border-top: 1px solid var(--border);padding-top: 10px;margin-top: 4px;}
+
+/* aviation-tool.js */
+.aviation-card{font-family:inherit;padding:0;overflow:hidden;background:var(--message-bg-ai);color:var(--text-primary);}
+.av-header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border);}
+.av-header-text{display:flex;flex-direction:column;}
+.av-title{font-size:0.95rem;font-weight:600;color:var(--text-primary);}
+.av-subtitle{font-size:0.75rem;color:var(--text-secondary);}
+.av-flights{display:flex;flex-direction:column;gap:0;}
+.av-flight{padding:14px 16px;border-bottom:1px solid var(--border);transition:background 0.15s;}
+.av-flight:last-child{border-bottom:none;}
+.av-flight:hover{background:var(--message-bg-user);}
+.av-flight-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.av-flight-id{display:flex;align-items:baseline;gap:8px;}
+.av-flightnum{font-size:1rem;font-weight:700;color:var(--text-primary);letter-spacing:0.04em;}
+.av-airline{font-size:0.78rem;color:var(--text-secondary);}
+.av-status{font-size:0.72rem;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:0.03em;white-space:nowrap;}
+.av-route{display:flex;align-items:center;gap:10px;}
+.av-airport{flex:1;min-width:0;}
+.av-airport-right{text-align:right;}
+.av-iata{font-size:1.4rem;font-weight:800;color:var(--text-primary);letter-spacing:0.05em;line-height:1;}
+.av-airport-name{font-size:0.72rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0;}
+.av-time{font-size:0.85rem;font-weight:500;color:var(--text-secondary);display:flex;align-items:center;gap:5px;}
+.av-airport-right .av-time{justify-content:flex-end;}
+.av-delay{font-size:0.7rem;font-weight:600;color:var(--text-primary);background:var(--danger-bg-soft);padding:1px 5px;border-radius:4px;}
+.av-meta-row{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.av-airport-right .av-meta-row{justify-content:flex-end;}
+.av-gate{font-size:0.68rem;color:var(--text-secondary);background:var(--input-bg);padding:1px 6px;border-radius:4px;border:1px solid var(--border);}
+.av-route-line{display:flex;align-items:center;flex:0 0 auto;gap:3px;opacity:0.5;padding-bottom:10px;color:var(--text-secondary);}
+.av-route-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.av-route-track{width:22px;height:1px;background:currentColor;}
+.av-route-plane{font-size:0.9rem;}
+.av-live-bar{display:flex;align-items:center;gap:10px;margin-top:10px;padding:6px 10px;background:var(--danger-bg-soft);border:1px solid var(--button-bg);border-radius:8px;font-size:0.72rem;font-weight:600;color:var(--button-bg);}
+.av-live-dot{width:7px;height:7px;border-radius:50%;background:var(--button-bg);box-shadow:0 0 6px var(--button-bg);animation:av-pulse 1.4s ease-in-out infinite;flex-shrink:0;}
+.av-live-stat{color:var(--text-secondary);font-weight:500;}
+.aviation-empty .av-empty-msg{padding:10px 16px 16px;font-size:0.82rem;color:var(--text-secondary);margin:0;}
+.av-footer{padding:8px 16px;font-size:0.68rem;color:var(--text-secondary);border-top:1px solid var(--border);text-align:right;}
+@keyframes av-pulse{0%, 100%{opacity: 1;transform: scale(1);}50%{opacity: 0.5;transform: scale(1.4);}}
+.av-status-active{background: rgba(34,197,94,0.15);color: #4ade80;border: 1px solid rgba(34,197,94,0.3);}
+.av-status-scheduled{background: rgba(99,179,237,0.12);color: #90cdf4;border: 1px solid rgba(99,179,237,0.25);}
+.av-status-landed{background: rgba(156,163,175,0.12);color: #d1d5db;border: 1px solid rgba(156,163,175,0.25);}
+.av-status-delayed{background: rgba(245,158,11,0.15);color: #fbbf24;border: 1px solid rgba(245,158,11,0.3);}
+.av-status-cancelled{background: rgba(239,68,68,0.12);color: #f87171;border: 1px solid rgba(239,68,68,0.25);}
+.av-status-incident{background: rgba(245,158,11,0.15);color: #fbbf24;border: 1px solid rgba(245,158,11,0.3);}
+.av-status-diverted{background: rgba(167,139,250,0.15);color: #c4b5fd;border: 1px solid rgba(167,139,250,0.3);}
+.av-status-unknown{background: rgba(255,255,255,0.06);color: #9ca3af;border: 1px solid rgba(255,255,255,0.1);}
+
+/* pexels-tool.js */
+.pexels-card{display: flex;flex-direction: column;background: var(--message-bg-ai);border: 1px solid var(--border);border-radius: 12px;overflow: hidden;width: fit-content;max-width: 100%;font-family: inherit;animation: pexels-fadein 0.35s ease both;}
+.pexels-header{display: flex;align-items: center;gap: 10px;padding: 10px 14px;background: var(--code-inline-bg);border-bottom: 1px solid var(--border);}
+.pexels-type-badge{font-size: 11px;font-weight: 700;letter-spacing: 0.06em;text-transform: uppercase;padding: 3px 8px;border-radius: 6px;white-space: nowrap;flex-shrink: 0;background: var(--input-bg);color: var(--button-bg);border: 1px solid var(--border);}
+.pexels-query{font-size: 13px;color: var(--text-secondary);font-weight: 500;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
+.pexels-media-wrap{background: var(--code-block-bg);line-height: 0;overflow: hidden;}
+.pexels-media{display: block;width: auto;height: auto;max-width: 100%;max-height: 60vh;object-fit: contain;transition: transform 0.4s ease;animation: pexels-media-reveal 0.4s ease 0.1s both;}
+.pexels-card:hover .pexels-media{transform: scale(1.01);}
+video.pexels-media{height: auto;max-height: 60vh;object-fit: contain;}
+.pexels-footer{display: flex;align-items: center;gap: 8px;padding: 9px 14px;background: var(--code-inline-bg);border-top: 1px solid var(--border);flex-wrap: wrap;}
+.pexels-photographer{font-size: 12px;color: var(--text-secondary);flex: 1;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;opacity: 0.7;}
+.pexels-duration{font-size: 11px;color: var(--text-secondary);background: var(--input-bg);padding: 2px 7px;border-radius: 5px;flex-shrink: 0;}
+.pexels-download{font-size: 11px;font-weight: 600;color: var(--button-text);background: var(--button-bg);border: none;padding: 4px 10px;border-radius: 6px;cursor: pointer;text-decoration: none;flex-shrink: 0;transition: background 0.2s ease;line-height: 1.6;}
+.pexels-download:hover{background: var(--button-hover);}
+.pexels-attribution{font-size: 11px;font-weight: 600;letter-spacing: 0.03em;color: var(--button-bg);text-decoration: none;flex-shrink: 0;transition: opacity 0.2s ease;}
+.pexels-attribution:hover{opacity: 0.7;}
+@keyframes pexels-fadein{from{opacity: 0;transform: translateY(6px);}to{opacity: 1;transform: translateY(0);}}
+@keyframes pexels-media-reveal{from{opacity: 0;}to{opacity: 1;}}
