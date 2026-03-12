@@ -186,8 +186,17 @@ class MarkdownFormatter {
     }).join('\n');
     return final;
   }
+  stripEmojis(text) {
+    return text.replace(
+      /[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{2300}-\u{23FF}]|[\u{2B00}-\u{2BFF}]|[\u{FE00}-\u{FEFF}]|[\u{1F900}-\u{1F9FF}]|\u{200D}|\u{FE0F}/gu,
+      ''
+    ).replace(/\s{2,}/g, ' ').trim();
+  }
   format(markdownText = '') {
     if (!markdownText) return '';
+    if (localStorage.getItem('setting-strip-emojis') === 'true') {
+      markdownText = this.stripEmojis(markdownText);
+    }
     const t = this.createTokenStore();
     let s = this.extractFencedCodeBlocks(markdownText, t);
     s = this.extractIndentedCodeBlocks(s, t);

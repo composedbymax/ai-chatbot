@@ -57,12 +57,15 @@ export class WelcomeMessage {
     }
     const messagesDiv = document.getElementById('messages');
     if (!messagesDiv) return;
+    const isIncognito = localStorage.getItem('setting-incognito-mode') === 'true';
+    const greeting = isIncognito ? 'Incognito Mode' : this.getGreeting();
+    const subtext = isIncognito ? '' : '<p class="welcome-subtext">How can I help you today?</p>';
     this.welcomeElement = document.createElement('div');
     this.welcomeElement.className = 'welcome-message';
     this.welcomeElement.innerHTML = `
       <div class="welcome-content">
-        <h1 class="welcome-greeting">${this.getGreeting()}</h1>
-        <p class="welcome-subtext">How can I help you today?</p>
+        <h1 class="welcome-greeting">${greeting}</h1>
+        ${subtext}
         <div class="welcome-spinner">
           <div class="spinner-ring"></div>
           <div class="spinner-ring"></div>

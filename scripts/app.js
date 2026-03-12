@@ -1,4 +1,5 @@
 import { ConversationManager, SidebarUI } from './sidebar.js';
+import { SettingsModal } from './settings.js';
 import { DraftSaver } from './draft.js';
 import { MarkdownFormatter } from './formatter.js';
 import { WelcomeMessage } from './welcome.js';
@@ -12,9 +13,11 @@ let draftSaver;
 let welcomeMessage;
 let voiceInput;
 let shareableLink;
-let modelSelect, form, input, messagesDiv;
+let modelSelect, form, input, messagesDiv, sendBtn;
 const formatter = new MarkdownFormatter();
-window.toolsEngine = new ToolsEngine();
+window.toolsEngine = SettingsModal.getSetting('setting-tools-enabled')
+  ? new ToolsEngine()
+  : null;
 function createAppStructure() {
   const appDiv = document.getElementById('app');
   appDiv.innerHTML = `
@@ -25,8 +28,17 @@ function createAppStructure() {
           <select id="modelSelect" aria-label="Select model">
             <option value="">Loading models…</option>
           </select>
-          <textarea id="userInput" placeholder="Type your message... " required rows="1"></textarea>
-          <button type="submit">Send</button>
+          <textarea id="userInput" placeholder="Type your message... " required rows="1" autofocus></textarea>
+          <button type="submit" id="sendBtn" class="send-btn" aria-label="Send message">
+            <span class="send-btn__arrow">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="send-btn__dots" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </span>
+          </button>
         </form>
       </section>
     </main>
@@ -37,6 +49,21 @@ function initDOMReferences() {
   form = document.getElementById('inputForm');
   input = document.getElementById('userInput');
   messagesDiv = document.getElementById('messages');
+  sendBtn = document.getElementById('sendBtn');
+  AutoModelSetting();
+}
+function AutoModelSetting() {
+  const autoModel = SettingsModal.getSetting('setting-auto-model');
+  modelSelect.style.display = autoModel ? 'none' : '';
+}
+function setSendButtonLoading(isLoading) {
+  if (isLoading) {
+    sendBtn.classList.add('send-btn--loading');
+    sendBtn.disabled = true;
+  } else {
+    sendBtn.classList.remove('send-btn--loading');
+    sendBtn.disabled = false;
+  }
 }
 function appendMessage(text, sender, meta = '') {
   if (welcomeMessage) {
@@ -66,6 +93,21 @@ function appendElement(el) {
   const messageWrapper = document.createElement('div');
   messageWrapper.className = 'message ai';
   messageWrapper.appendChild(el);
+  messagesDiv.appendChild(messageWrapper);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+function appendElementWithBanner(el, calledAt) {
+  if (welcomeMessage) welcomeMessage.hide();
+  const messageWrapper = document.createElement('div');
+  messageWrapper.className = 'message ai';
+  messageWrapper.appendChild(el);
+  if (calledAt) {
+    const banner = document.createElement('div');
+    banner.className = 'tool-cache-banner';
+    const d = new Date(calledAt);
+    banner.textContent = `Tool called at ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+    messageWrapper.appendChild(banner);
+  }
   messagesDiv.appendChild(messageWrapper);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
@@ -104,18 +146,7 @@ async function initializeApp() {
 async function sendMessage(message, model) {
   appendMessage(message, 'user');
   await conversationManager.saveMessage('user', message);
-  const typing = document.createElement('div');
-  typing.className = 'message ai';
-  const typingContent = document.createElement('div');
-  typingContent.textContent = '.';
-  typing.appendChild(typingContent);
-  messagesDiv.appendChild(typing);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  let dotCount = 1;
-  const typingInterval = setInterval(() => {
-    dotCount = (dotCount % 3) + 1;
-    typingContent.textContent = '.'.repeat(dotCount);
-  }, 500);
+  setSendButtonLoading(true);
   try {
     let messages = [];
     if (conversationManager.currentConversationId) {
@@ -127,12 +158,12 @@ async function sendMessage(message, model) {
         }));
       }
     }
-    await toolsEngine.ready();
-    const matchedTools = toolsEngine.detectTools(message);
-    const toolPrompt = toolsEngine.buildToolPrompt(matchedTools);
+    const matchedTools = window.toolsEngine ? window.toolsEngine.detectTools(message) : [];
+    const toolPrompt = window.toolsEngine ? window.toolsEngine.buildToolPrompt(matchedTools) : null;
     const augmentedMessage = toolPrompt
       ? `${toolPrompt}\n\nUser message: ${message}`
       : message;
+    if (window.toolsEngine) await window.toolsEngine.ready();
     const apiMessages = [
       ...messages.slice(0, -1),
       { role: 'user', content: augmentedMessage }
@@ -147,20 +178,36 @@ async function sendMessage(message, model) {
       })
     });
     const json = await res.json();
-    clearInterval(typingInterval);
-    typing.remove();
+    setSendButtonLoading(false);
     if (json.error) {
       appendMessage(json.error, 'ai');
       await conversationManager.saveMessage('assistant', json.error);
     } else {
       const reply = json.reply || 'No response from model';
-      if (matchedTools.length) {
-        const toolEl = await toolsEngine.tryRender(reply);
-        if (toolEl) {
-          appendElement(toolEl);
-          await conversationManager.saveMessage('assistant', reply);
-          if (json.rate_limit_message) appendMessage(json.rate_limit_message, 'ai');
-          return;
+      if (matchedTools.length && window.toolsEngine) {
+        const cacheEnabled = SettingsModal.getSetting('setting-cache-tools');
+        if (cacheEnabled) {
+          const result = await window.toolsEngine.tryRender(reply, { cache: true });
+          if (result?.el) {
+            appendElementWithBanner(result.el, result.calledAt);
+            const cachePayload = JSON.stringify({
+              __toolCache: true,
+              cache: result.cache,
+              calledAt: result.calledAt,
+              originalReply: reply
+            });
+            await conversationManager.saveMessage('assistant', cachePayload);
+            if (json.rate_limit_message) appendMessage(json.rate_limit_message, 'ai');
+            return;
+          }
+        } else {
+          const toolEl = await window.toolsEngine.tryRender(reply);
+          if (toolEl) {
+            appendElement(toolEl);
+            await conversationManager.saveMessage('assistant', reply);
+            if (json.rate_limit_message) appendMessage(json.rate_limit_message, 'ai');
+            return;
+          }
         }
       }
       appendMessage(reply, 'ai');
@@ -171,8 +218,7 @@ async function sendMessage(message, model) {
     }
   } catch (err) {
     console.error(err);
-    clearInterval(typingInterval);
-    typing.remove();
+    setSendButtonLoading(false);
     const errorMsg = 'Error connecting to server';
     appendMessage(errorMsg, 'ai');
     await conversationManager.saveMessage('assistant', errorMsg);
@@ -187,10 +233,22 @@ function autoResizeTextarea(textarea) {
 async function loadConversationIntoUI(conversation) {
   clearMessages();
   if (conversation.messages && conversation.messages.length > 0) {
-    await toolsEngine.ready();
+    if (window.toolsEngine) await window.toolsEngine.ready();
     for (const msg of conversation.messages) {
       if (msg.role === 'assistant') {
-        const rendered = await toolsEngine.tryRender(msg.content);
+        let cachedPayload = null;
+        try {
+          const candidate = JSON.parse(msg.content);
+          if (candidate?.__toolCache === true) cachedPayload = candidate;
+        } catch {}
+        if (cachedPayload && window.toolsEngine) {
+          const el = window.toolsEngine.renderFromCache(cachedPayload);
+          if (el) {
+            appendElementWithBanner(el, cachedPayload.calledAt);
+            continue;
+          }
+        }
+        const rendered = window.toolsEngine ? await window.toolsEngine.tryRender(msg.content) : null;
         rendered ? appendElement(rendered) : appendMessage(msg.content, 'ai');
       } else {
         appendMessage(msg.content, 'user');
@@ -222,6 +280,22 @@ async function init() {
   if (searchInput) {
     voiceInput.attachToInput(searchInput);
   }
+  const settingsModal = new SettingsModal();
+  settingsModal.init();
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'setting-auto-model') {
+      AutoModelSetting();
+    }
+    if (e.target.id === 'setting-tools-enabled') {
+      window.toolsEngine = e.target.checked ? new ToolsEngine() : null;
+    }
+    if (e.target.id === 'setting-incognito-mode') {
+      if (welcomeMessage && document.getElementById('messages')?.children.length <= 1) {
+        welcomeMessage.hide();
+        setTimeout(() => welcomeMessage.show(), 350);
+      }
+    }
+  });
   draftSaver = new DraftSaver(input);
   input.addEventListener('input', () => {
     autoResizeTextarea(input);
@@ -235,10 +309,11 @@ async function init() {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const message = input.value.trim();
-    const model = modelSelect.value;
-    if (!message) return;
+    const model = SettingsModal.getSetting('setting-auto-model')
+      ? (modelSelect.options[0]?.value || modelSelect.value)
+      : modelSelect.value;
     if (!model) {
-      appendMessage('Please select a model before sending.', 'ai');
+      appendMessage('No model available. Please wait for models to load.', 'ai');
       return;
     }
     draftSaver.deleteDraft();

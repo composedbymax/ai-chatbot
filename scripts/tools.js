@@ -76,15 +76,6 @@ export class ToolsEngine {
     } catch {}
     return null;
   }
-  async handleToolCall(toolCall) {
-    const toolConfig = this.config.tools.find(t => t.id === toolCall.tool);
-    if (!toolConfig) throw new Error(`Unknown tool: ${toolCall.tool}`);
-    const renderer = this.renderers[toolCall.tool];
-    if (!renderer) throw new Error(`No renderer loaded for tool: ${toolCall.tool}`);
-    const data = await this._fetchToolData(toolConfig.php_file, toolCall);
-    const enrichedCall = { ...toolCall, _phpFile: toolConfig.php_file };
-    return renderer.render(data, enrichedCall);
-  }
   async _fetchToolData(phpFile, toolCall) {
     const res = await fetch(phpFile, {
       method: 'POST',
@@ -97,29 +88,59 @@ export class ToolsEngine {
     }
     return res.json();
   }
-  async tryRender(llmReply) {
+  async tryRender(llmReply, { cache = false } = {}) {
     const toolCall = this.parseToolCall(llmReply);
     if (!toolCall) return null;
     const toolCalls = Array.isArray(toolCall) ? toolCall : [toolCall];
+    const cacheEntries = cache ? [] : null;
+    const runOne = async (tc) => {
+      const toolConfig = this.config.tools.find(t => t.id === tc.tool);
+      if (!toolConfig) throw new Error(`Unknown tool: ${tc.tool}`);
+      const renderer = this.renderers[tc.tool];
+      if (!renderer) throw new Error(`No renderer loaded for tool: ${tc.tool}`);
+      const data = await this._fetchToolData(toolConfig.php_file, tc);
+      if (cacheEntries) cacheEntries.push({ tool: tc.tool, data });
+      return renderer.render(data, { ...tc, _phpFile: toolConfig.php_file });
+    };
     if (toolCalls.length === 1) {
       try {
-        return await this.handleToolCall(toolCalls[0]);
+        const el = await runOne(toolCalls[0]);
+        return cache ? { el, cache: cacheEntries, calledAt: Date.now() } : el;
       } catch (err) {
         console.error('[ToolsEngine] Tool render failed:', err);
-        return window.toolErrorEl(err.message);
+        const errEl = window.toolErrorEl(err.message);
+        return cache ? { el: errEl, cache: null } : errEl;
       }
     }
     const container = document.createElement('div');
     container.className = 'tool-results-multi';
     await Promise.all(toolCalls.map(async (tc) => {
       try {
-        const el = await this.handleToolCall(tc);
-        container.appendChild(el);
+        container.appendChild(await runOne(tc));
       } catch (err) {
         console.error('[ToolsEngine] Tool render failed:', err);
         container.appendChild(window.toolErrorEl(err.message));
       }
     }));
+    return cache ? { el: container, cache: cacheEntries, calledAt: Date.now() } : container;
+  }
+  renderFromCache(cachedPayload) {
+    if (!cachedPayload?.cache?.length) return null;
+    if (cachedPayload.cache.length === 1) {
+      const { tool, data } = cachedPayload.cache[0];
+      const renderer = this.renderers[tool];
+      if (!renderer) return null;
+      const toolConfig = this.config.tools.find(t => t.id === tool);
+      return renderer.render(data, { tool, _phpFile: toolConfig?.php_file });
+    }
+    const container = document.createElement('div');
+    container.className = 'tool-results-multi';
+    for (const { tool, data } of cachedPayload.cache) {
+      const renderer = this.renderers[tool];
+      if (!renderer) continue;
+      const toolConfig = this.config.tools.find(t => t.id === tool);
+      container.appendChild(renderer.render(data, { tool, _phpFile: toolConfig?.php_file }));
+    }
     return container;
   }
   async recallToolsFromConversation(conversation, replaceCallback) {

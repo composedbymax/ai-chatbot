@@ -154,6 +154,7 @@ export class ConversationManager {
     return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   }
   async saveMessage(role, content) {
+    if (localStorage.getItem('setting-incognito-mode') === 'true') return null;
     if (!this.currentConversationId) {
       this.currentConversationId = this.generateId();
     }
