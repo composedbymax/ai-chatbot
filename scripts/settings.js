@@ -1,6 +1,7 @@
 export class SettingsModal {
   constructor() {
     this.isOpen = false;
+    this.authModalLoaded = false;
     this.accountSVG = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="11" cy="7.5" r="3.5" stroke="currentColor" stroke-width="1.5"/>
       <path d="M3.5 19C3.5 15.134 6.91 12 11 12C15.09 12 18.5 15.134 18.5 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -140,39 +141,96 @@ export class SettingsModal {
     const name = window.userName;
     const svg = this.accountSVG;
     const roleMeta = {
-        basic:  { cls: 'basic',   badge: 'Basic',        action: { href: '/upgrade', text: 'Upgrade', cls: 'upgrade' } },
-        premium:{ cls: 'premium', badge: '✦ Premium' },
-        admin:  { cls: 'admin',   badge: '⬡ Admin' }
+      basic:   { cls: 'basic',   badge: 'Basic',      action: { href: '/upgrade', text: 'Upgrade', cls: 'upgrade' } },
+      premium: { cls: 'premium', badge: '✦ Premium' },
+      admin:   { cls: 'admin',   badge: '⬡ Admin' }
     };
     if (!loggedIn || !name) {
-        return `
+      return `
         <div class="account-status guest">
-            <div class="account-status-icon">${svg}</div>
-            <div class="account-status-text">
+          <div class="account-status-icon">${svg}</div>
+          <div class="account-status-text">
             <span class="account-status-name">Guest</span>
             <span class="account-status-detail">Not signed in</span>
-            </div>
-            <a href="/auth?redirect=/chat" class="account-action-btn">Sign In</a>
+          </div>
+          <button class="account-action-btn" id="settingsSignInBtn">Sign In</button>
         </div>
-        `;
+      `;
     }
     const meta = roleMeta[role] || { cls: 'guest', badge: null };
     const badgeHtml = meta.badge ? `<span class="account-status-badge ${meta.cls}-badge">${meta.badge}</span>` : '';
     const actionHtml = meta.action ? `<a href="${meta.action.href}" class="account-action-btn ${meta.action.cls || ''}">${meta.action.text}</a>` : '';
     const iconExtraClass = (meta.cls === 'premium' || meta.cls === 'admin') ? `${meta.cls}-icon` : '';
     return `
-        <div class="account-status ${meta.cls}">
-        <div class="account-status-icon ${iconExtraClass}">
-            ${svg}
-        </div>
+      <div class="account-status ${meta.cls}">
+        <div class="account-status-icon ${iconExtraClass}">${svg}</div>
         <div class="account-status-text">
-            <span class="account-status-name">${this._escapeHtml(name)}</span>
-            ${badgeHtml}
+          <span class="account-status-name">${this._escapeHtml(name)}</span>
+          ${badgeHtml}
         </div>
         ${actionHtml}
-        </div>
+      </div>
     `;
+  }
+  async _loadAuthModal() {
+    if (this.authModalLoaded) {
+      const authModal = document.getElementById('authModal');
+      if (authModal) authModal.style.display = 'block';
+      return;
     }
+    try {
+      const res = await fetch('/auth/modal.php', { credentials: 'same-origin' });
+      if (!res.ok) throw new Error(`Failed to load auth modal: ${res.status}`);
+      const html = await res.text();
+      const container = document.createElement('div');
+      container.id = 'authModalContainer';
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      const scripts = [...temp.querySelectorAll('script')];
+      scripts.forEach(s => s.remove());
+      container.innerHTML = temp.innerHTML;
+      document.body.appendChild(container);
+      const form = container.querySelector('form');
+      if (form) {
+        form.action = '/auth/modal.php?redirect=/chat/';
+        form.method = 'POST';
+      }
+      const registerLink = container.querySelector('.register-link a');
+      if (registerLink) {
+        registerLink.href = '/auth?redirect=/chat/';
+      }
+      const authModal = document.getElementById('authModal');
+      const closeButton = container.querySelector('#authClose');
+      if (closeButton) {
+        closeButton.addEventListener('click', () => {
+          if (authModal) authModal.style.display = 'none';
+        });
+      }
+      if (authModal) {
+        authModal.addEventListener('click', (e) => {
+          if (e.target === authModal) authModal.style.display = 'none';
+        });
+      }
+      this.authModalLoaded = true;
+      if (authModal) authModal.style.display = 'block';
+      for (const oldScript of scripts) {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          await new Promise((resolve, reject) => {
+            newScript.src = oldScript.src;
+            newScript.onload = resolve;
+            newScript.onerror = reject;
+            document.body.appendChild(newScript);
+          });
+        } else {
+          newScript.textContent = oldScript.textContent;
+          document.body.appendChild(newScript);
+        }
+      }
+    } catch (err) {
+      console.error('Auth modal load error:', err);
+    }
+  }
   _escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -180,38 +238,39 @@ export class SettingsModal {
   }
   _attachEvents() {
     document.addEventListener('click', (e) => {
-        if (e.target.id === 'settingsCloseBtn' || e.target.closest('#settingsCloseBtn')) {
+      if (e.target.id === 'settingsCloseBtn' || e.target.closest('#settingsCloseBtn')) {
         this.close();
-        }
-        if (e.target.classList.contains('settings-overlay')) {
+      }
+      if (e.target.classList.contains('settings-overlay')) {
         this.close();
-        }
+      }
+      if (e.target.id === 'settingsSignInBtn') {
+        this.close();
+        this._loadAuthModal();
+      }
     });
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && this.isOpen) {
-        this.close();
-        }
+      if (e.key === 'Escape' && this.isOpen) this.close();
     });
     const toggleIds = [
-        'setting-incognito-mode',
-        'setting-strip-emojis',
-        'setting-auto-model',
-        'setting-tools-enabled',
-        'setting-cache-tools'
+      'setting-incognito-mode',
+      'setting-strip-emojis',
+      'setting-auto-model',
+      'setting-tools-enabled',
+      'setting-cache-tools'
     ];
     toggleIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.checked = localStorage.getItem(id) === 'true';
+      const el = document.getElementById(id);
+      if (el) el.checked = localStorage.getItem(id) === 'true';
     });
     document.addEventListener('change', (e) => {
-        if (e.target.matches('.settings-toggle input[type="checkbox"]')) {
+      if (e.target.matches('.settings-toggle input[type="checkbox"]')) {
         localStorage.setItem(e.target.id, e.target.checked);
-        }
+      }
     });
   }
   open() {
     const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
     if (document.body.classList.contains('sidebar-open')) {
       document.body.classList.remove('sidebar-open');
       if (sidebarToggle) sidebarToggle.classList.remove('open');
