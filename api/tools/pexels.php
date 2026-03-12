@@ -15,7 +15,6 @@ if (!$body || empty($body['query'])) {
     echo json_encode(['error' => 'Missing query parameter']);
     exit;
 }
-
 $query    = trim($body['query']);
 $type     = isset($body['type']) ? $body['type'] : 'photo';
 $per_page = 1;

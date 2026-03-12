@@ -76,6 +76,28 @@
       "js_file": "./tools/pexels-tool.js",
       "php_file": "./api/tools/pexels.php",
       "renderer": "PexelsTool"
-    }
+    },
+    {
+  "id": "currency",
+  "name": "Currency Converter",
+  "keywords": [
+    "convert", "currency", "exchange", "rate", "exchange rate",
+    "usd", "eur", "gbp", "jpy", "cad", "aud", "chf", "cny",
+    "dollar", "euro", "pound", "yen", "franc", "rupee", "peso",
+    "bitcoin", "btc", "ethereum", "eth", "crypto",
+    "how much is", "how many", "in dollars", "in euros", "in pounds",
+    "forex", "fx", "conversion", "worth in"
+  ],
+  "keyword_context": [
+    "convert", "exchange", "rate", "currency",
+    "dollar", "euro", "pound", "yen", "rupee", "peso",
+    "usd", "eur", "gbp", "jpy", "cad", "aud", "chf", "cny",
+    "btc", "eth", "bitcoin", "ethereum"
+  ],
+  "llm_instructions": "The user is asking about a currency conversion. Extract the source currency (from), target currency (to), and amount from their message. Use standard ISO 4217 currency codes (e.g. USD, EUR, GBP, JPY) or crypto codes (BTC, ETH). Default amount to 1 if not specified. Respond ONLY with a JSON tool-call in this exact format (no other text):\n{\"tool\":\"currency\",\"from\":\"<ISO code>\",\"to\":\"<ISO code>\",\"amount\":<number>,\"description\":\"<brief friendly description of what they asked>\"}",
+  "js_file": "./tools/currency-tool.js",
+  "php_file": "./api/tools/currency.php",
+  "renderer": "CurrencyTool"
+}
   ]
 }
